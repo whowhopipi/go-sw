@@ -14,6 +14,7 @@ import (
 	"cmd/compile/internal/ppc64"
 	"cmd/compile/internal/riscv64"
 	"cmd/compile/internal/s390x"
+	"cmd/compile/internal/sw64"
 	"cmd/compile/internal/wasm"
 	"cmd/compile/internal/x86"
 	"cmd/internal/objabi"
@@ -36,6 +37,7 @@ var archInits = map[string]func(*gc.Arch){
 	"riscv64":  riscv64.Init,
 	"s390x":    s390x.Init,
 	"wasm":     wasm.Init,
+	"sw64":     sw64.Init,
 }
 
 func main() {

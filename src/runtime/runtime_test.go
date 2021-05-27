@@ -180,6 +180,9 @@ var faultAddrs = []uint64{
 }
 
 func TestSetPanicOnFault(t *testing.T) {
+	if GOARCH == "sw64" {
+		t.Skip("Some machine need upgrade hmcode to 2018-9+")
+	}
 	old := debug.SetPanicOnFault(true)
 	defer debug.SetPanicOnFault(old)
 

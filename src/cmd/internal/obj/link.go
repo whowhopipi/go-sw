@@ -417,6 +417,7 @@ const (
 	ABaseRISCV
 	ABaseS390X
 	ABaseWasm
+	ABaseSW64
 
 	AllowedOpCodes = 1 << 11            // The number of opcodes available for any given architecture.
 	AMask          = AllowedOpCodes - 1 // AND with this to use the opcode as an array index.

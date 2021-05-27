@@ -533,6 +533,8 @@ func mallocinit() {
 				p = uintptr(i)<<40 | uintptrMask&(0x0013<<28)
 			case GOARCH == "arm64":
 				p = uintptr(i)<<40 | uintptrMask&(0x0040<<32)
+			case GOARCH == "sw64":
+				p = uintptr(i)<<34 | uintptrMask&(0xc0<<28)
 			case GOOS == "aix":
 				if i == 0 {
 					// We don't use addresses directly after 0x0A00000000000000

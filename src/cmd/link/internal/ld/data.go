@@ -258,7 +258,7 @@ func (st *relocSymState) relocsym(s loader.Sym, P []byte) {
 			if target.IsExternal() && target.IsElf() {
 				nExtReloc++
 				o = 0
-				if !target.IsAMD64() {
+				if !target.IsAMD64() && !target.IsSW64() {
 					o = r.Add()
 				}
 				break
@@ -284,7 +284,7 @@ func (st *relocSymState) relocsym(s loader.Sym, P []byte) {
 			if target.IsExternal() && target.IsElf() {
 				nExtReloc++
 				o = 0
-				if !target.IsAMD64() {
+				if !target.IsAMD64() && !target.IsSW64() {
 					o = r.Add()
 				}
 				if target.Is386() {
@@ -318,7 +318,7 @@ func (st *relocSymState) relocsym(s loader.Sym, P []byte) {
 
 				o = xadd
 				if target.IsElf() {
-					if target.IsAMD64() {
+					if target.IsAMD64() || target.IsSW64() {
 						o = 0
 					}
 				} else if target.IsDarwin() {
@@ -380,7 +380,7 @@ func (st *relocSymState) relocsym(s loader.Sym, P []byte) {
 				xadd := r.Add() + ldr.SymValue(rs) - int64(ldr.SymSect(rs).Vaddr)
 
 				o = xadd
-				if target.IsElf() && target.IsAMD64() {
+				if target.IsElf() && (target.IsAMD64() || target.IsSW64()) {
 					o = 0
 				}
 				break
@@ -443,7 +443,7 @@ func (st *relocSymState) relocsym(s loader.Sym, P []byte) {
 
 				o = xadd
 				if target.IsElf() {
-					if target.IsAMD64() {
+					if target.IsAMD64() || target.IsSW64() {
 						o = 0
 					}
 				} else if target.IsDarwin() {

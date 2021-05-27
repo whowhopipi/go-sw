@@ -248,4 +248,5 @@ var KnownArch = map[string]bool{
 	"sparc":       true,
 	"sparc64":     true,
 	"wasm":        true,
+	"sw64":        true,
 }

@@ -499,3 +499,96 @@ pkg unicode, var Chorasmian *RangeTable
 pkg unicode, var Dives_Akuru *RangeTable
 pkg unicode, var Khitan_Small_Script *RangeTable
 pkg unicode, var Yezidi *RangeTable
+pkg debug/elf, const EM_SW64 = 39190
+pkg debug/elf, const EM_SW64 Machine
+pkg debug/elf, const R_SW64_BR26ADDR = 42
+pkg debug/elf, const R_SW64_BR26ADDR R_SW64
+pkg debug/elf, const R_SW64_BRADDR = 7
+pkg debug/elf, const R_SW64_BRADDR R_SW64
+pkg debug/elf, const R_SW64_BRSGP = 28
+pkg debug/elf, const R_SW64_BRSGP R_SW64
+pkg debug/elf, const R_SW64_COPY = 24
+pkg debug/elf, const R_SW64_COPY R_SW64
+pkg debug/elf, const R_SW64_DTPMOD64 = 31
+pkg debug/elf, const R_SW64_DTPMOD64 R_SW64
+pkg debug/elf, const R_SW64_DTPREL16 = 36
+pkg debug/elf, const R_SW64_DTPREL16 R_SW64
+pkg debug/elf, const R_SW64_DTPREL64 = 33
+pkg debug/elf, const R_SW64_DTPREL64 R_SW64
+pkg debug/elf, const R_SW64_DTPRELHI = 34
+pkg debug/elf, const R_SW64_DTPRELHI R_SW64
+pkg debug/elf, const R_SW64_DTPRELLO = 35
+pkg debug/elf, const R_SW64_DTPRELLO R_SW64
+pkg debug/elf, const R_SW64_GLOB_DAT = 25
+pkg debug/elf, const R_SW64_GLOB_DAT R_SW64
+pkg debug/elf, const R_SW64_GOTDTPREL = 32
+pkg debug/elf, const R_SW64_GOTDTPREL R_SW64
+pkg debug/elf, const R_SW64_GOTTPREL = 37
+pkg debug/elf, const R_SW64_GOTTPREL R_SW64
+pkg debug/elf, const R_SW64_GPDISP = 6
+pkg debug/elf, const R_SW64_GPDISP R_SW64
+pkg debug/elf, const R_SW64_GPREL16 = 19
+pkg debug/elf, const R_SW64_GPREL16 R_SW64
+pkg debug/elf, const R_SW64_GPREL32 = 3
+pkg debug/elf, const R_SW64_GPREL32 R_SW64
+pkg debug/elf, const R_SW64_GPRELHIGH = 17
+pkg debug/elf, const R_SW64_GPRELHIGH R_SW64
+pkg debug/elf, const R_SW64_GPRELLOW = 18
+pkg debug/elf, const R_SW64_GPRELLOW R_SW64
+pkg debug/elf, const R_SW64_GPVALUE = 16
+pkg debug/elf, const R_SW64_GPVALUE R_SW64
+pkg debug/elf, const R_SW64_HINT = 8
+pkg debug/elf, const R_SW64_HINT R_SW64
+pkg debug/elf, const R_SW64_IMMED_BR_HI32 = 22
+pkg debug/elf, const R_SW64_IMMED_BR_HI32 R_SW64
+pkg debug/elf, const R_SW64_IMMED_GP_HI32 = 20
+pkg debug/elf, const R_SW64_IMMED_GP_HI32 R_SW64
+pkg debug/elf, const R_SW64_IMMED_LO32 = 23
+pkg debug/elf, const R_SW64_IMMED_LO32 R_SW64
+pkg debug/elf, const R_SW64_IMMED_SCN_HI32 = 21
+pkg debug/elf, const R_SW64_IMMED_SCN_HI32 R_SW64
+pkg debug/elf, const R_SW64_JMP_SLOT = 26
+pkg debug/elf, const R_SW64_JMP_SLOT R_SW64
+pkg debug/elf, const R_SW64_LITERAL = 4
+pkg debug/elf, const R_SW64_LITERAL R_SW64
+pkg debug/elf, const R_SW64_LITERAL_GOT = 43
+pkg debug/elf, const R_SW64_LITERAL_GOT R_SW64
+pkg debug/elf, const R_SW64_LITUSE = 5
+pkg debug/elf, const R_SW64_LITUSE R_SW64
+pkg debug/elf, const R_SW64_NONE = 0
+pkg debug/elf, const R_SW64_NONE R_SW64
+pkg debug/elf, const R_SW64_OP_PRSHIFT = 15
+pkg debug/elf, const R_SW64_OP_PRSHIFT R_SW64
+pkg debug/elf, const R_SW64_OP_PSUB = 14
+pkg debug/elf, const R_SW64_OP_PSUB R_SW64
+pkg debug/elf, const R_SW64_OP_PUSH = 12
+pkg debug/elf, const R_SW64_OP_PUSH R_SW64
+pkg debug/elf, const R_SW64_OP_STORE = 13
+pkg debug/elf, const R_SW64_OP_STORE R_SW64
+pkg debug/elf, const R_SW64_REFLONG = 1
+pkg debug/elf, const R_SW64_REFLONG R_SW64
+pkg debug/elf, const R_SW64_REFQUAD = 2
+pkg debug/elf, const R_SW64_REFQUAD R_SW64
+pkg debug/elf, const R_SW64_RELATIVE = 27
+pkg debug/elf, const R_SW64_RELATIVE R_SW64
+pkg debug/elf, const R_SW64_SREL16 = 9
+pkg debug/elf, const R_SW64_SREL16 R_SW64
+pkg debug/elf, const R_SW64_SREL32 = 10
+pkg debug/elf, const R_SW64_SREL32 R_SW64
+pkg debug/elf, const R_SW64_SREL64 = 11
+pkg debug/elf, const R_SW64_SREL64 R_SW64
+pkg debug/elf, const R_SW64_TLSGD = 29
+pkg debug/elf, const R_SW64_TLSGD R_SW64
+pkg debug/elf, const R_SW64_TLSLDM = 30
+pkg debug/elf, const R_SW64_TLSLDM R_SW64
+pkg debug/elf, const R_SW64_TPREL16 = 41
+pkg debug/elf, const R_SW64_TPREL16 R_SW64
+pkg debug/elf, const R_SW64_TPREL64 = 38
+pkg debug/elf, const R_SW64_TPREL64 R_SW64
+pkg debug/elf, const R_SW64_TPRELHI = 39
+pkg debug/elf, const R_SW64_TPRELHI R_SW64
+pkg debug/elf, const R_SW64_TPRELLO = 40
+pkg debug/elf, const R_SW64_TPRELLO R_SW64
+pkg debug/elf, method (R_SW64) GoString() string
+pkg debug/elf, method (R_SW64) String() string
+pkg debug/elf, type R_SW64 int

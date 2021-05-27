@@ -623,6 +623,8 @@ func (f *File) applyRelocations(dst []byte, rels []byte) error {
 		return f.applyRelocationss390x(dst, rels)
 	case f.Class == ELFCLASS64 && f.Machine == EM_SPARCV9:
 		return f.applyRelocationsSPARC64(dst, rels)
+	case f.Class == ELFCLASS64 && f.Machine == EM_SW64:
+		return f.applyRelocationsSW64(dst, rels)
 	default:
 		return errors.New("applyRelocations: not implemented")
 	}
@@ -1121,6 +1123,54 @@ func (f *File) applyRelocationsSPARC64(dst []byte, rels []byte) error {
 				continue
 			}
 			val32 := uint32(sym.Value) + uint32(rela.Addend)
+			f.ByteOrder.PutUint32(dst[rela.Off:rela.Off+4], val32)
+		}
+	}
+
+	return nil
+}
+
+func (f *File) applyRelocationsSW64(dst []byte, rels []byte) error {
+	// 24 is the size of Rela64.
+	if len(rels)%24 != 0 {
+		return errors.New("length of relocation section is not a multiple of 24")
+	}
+
+	symbols, _, err := f.getSymbols(SHT_SYMTAB)
+	if err != nil {
+		return err
+	}
+
+	b := bytes.NewReader(rels)
+	var rela Rela64
+
+	for b.Len() > 0 {
+		binary.Read(b, f.ByteOrder, &rela)
+		symNo := rela.Info >> 32
+		t := R_SW_64(rela.Info & 0xffff)
+
+		if symNo == 0 || symNo > uint64(len(symbols)) {
+			continue
+		}
+		//zxw new change
+		sym := &symbols[symNo-1]
+		needed, val := relocSymbolTargetOK(sym)
+		if !needed {
+			// We don't handle non-section relocations for now.
+			continue
+		}
+		switch t {
+		case R_SW_64_REFQUAD:
+			if rela.Off+8 >= uint64(len(dst)) || rela.Addend < 0 {
+				continue
+			}
+			val64 := val + uint64(rela.Addend)
+			f.ByteOrder.PutUint64(dst[rela.Off:rela.Off+8], val64)
+		case R_SW_64_REFLONG:
+			if rela.Off+4 >= uint64(len(dst)) || rela.Addend < 0 {
+				continue
+			}
+			val32 := uint32(val) + uint32(rela.Addend)
 			f.ByteOrder.PutUint32(dst[rela.Off:rela.Off+4], val32)
 		}
 	}

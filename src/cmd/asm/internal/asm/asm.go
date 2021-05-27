@@ -506,6 +506,9 @@ func (p *Parser) asmJump(op obj.As, cond string, a []obj.Addr) {
 	case target.Type == obj.TYPE_CONST:
 		// JMP $4
 		prog.To = a[0]
+		if p.arch.Family == sys.SW64 {
+			prog.To = a[1]
+		}
 	case target.Type == obj.TYPE_NONE:
 		// JMP
 	default:
@@ -707,6 +710,17 @@ func (p *Parser) asmInstruction(op obj.As, cond string, a []obj.Addr) {
 				prog.SetFrom3(a[1])
 			}
 			prog.To = a[2]
+		case sys.SW64:
+			prog.From = a[0]
+
+			if a[1].Type == obj.TYPE_REG {
+				prog.Reg = p.getRegister(prog, op, &a[1])
+			} else {
+				prog.RestArgs = []obj.Addr{a[1]}
+			}
+
+			prog.To = a[2]
+
 		default:
 			p.errorf("TODO: implement three-operand instructions for this architecture")
 			return
@@ -738,6 +752,12 @@ func (p *Parser) asmInstruction(op obj.As, cond string, a []obj.Addr) {
 		if p.arch.Family == sys.AMD64 {
 			prog.From = a[0]
 			prog.SetRestArgs([]obj.Addr{a[1], a[2]})
+			prog.To = a[3]
+			break
+		}
+		if p.arch.Family == sys.SW64 {
+			prog.From = a[0]
+			prog.RestArgs = []obj.Addr{a[1], a[2]}
 			prog.To = a[3]
 			break
 		}

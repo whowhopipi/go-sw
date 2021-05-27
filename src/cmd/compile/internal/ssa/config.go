@@ -342,6 +342,20 @@ func NewConfig(arch string, types Types, ctxt *obj.Link, optimize bool) *Config 
 		c.noDuffDevice = true
 		c.useAvg = false
 		c.useHmul = false
+	case "sw64":
+		c.PtrSize = 8
+		c.RegSize = 8
+		c.lowerBlock = rewriteBlockSW64
+		c.lowerValue = rewriteValueSW64
+		c.registers = registersSW64[:]
+		c.gpRegMask = gpRegMaskSW64
+		c.fpRegMask = fpRegMaskSW64
+		c.FPReg = framepointerRegSW64
+		c.LinkReg = linkRegSW64
+		c.hasGReg = true
+		c.noDuffDevice = true
+		c.BigEndian = false
+
 	default:
 		ctxt.Diag("arch %s not implemented", arch)
 	}

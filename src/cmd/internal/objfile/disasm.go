@@ -24,6 +24,7 @@ import (
 	"golang.org/x/arch/arm/armasm"
 	"golang.org/x/arch/arm64/arm64asm"
 	"golang.org/x/arch/ppc64/ppc64asm"
+	"golang.org/x/arch/sw64/sw64asm"
 	"golang.org/x/arch/x86/x86asm"
 )
 
@@ -383,6 +384,17 @@ func disasm_ppc64(code []byte, pc uint64, lookup lookupFunc, byteOrder binary.By
 	return text, size
 }
 
+func disasm_sw64(code []byte, pc uint64, lookup lookupFunc, byteOrder binary.ByteOrder) (string, int) {
+	inst, err := sw64asm.Decode(code)
+	var text string
+	if err != nil {
+		text = "?"
+	} else {
+		text = sw64asm.GoSyntax(inst, pc, lookup, textReader{code, pc})
+	}
+	return text, 4
+}
+
 var disasms = map[string]disasmFunc{
 	"386":     disasm_386,
 	"amd64":   disasm_amd64,
@@ -390,6 +402,7 @@ var disasms = map[string]disasmFunc{
 	"arm64":   disasm_arm64,
 	"ppc64":   disasm_ppc64,
 	"ppc64le": disasm_ppc64,
+	"sw64":    disasm_sw64,
 }
 
 var byteOrders = map[string]binary.ByteOrder{
@@ -400,6 +413,7 @@ var byteOrders = map[string]binary.ByteOrder{
 	"ppc64":   binary.BigEndian,
 	"ppc64le": binary.LittleEndian,
 	"s390x":   binary.BigEndian,
+	"sw64":    binary.LittleEndian,
 }
 
 type Liner interface {

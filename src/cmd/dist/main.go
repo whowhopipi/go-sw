@@ -129,6 +129,8 @@ func main() {
 			gohostarch = "riscv64"
 		case strings.Contains(out, "s390x"):
 			gohostarch = "s390x"
+		case strings.Contains(out, "sw_64"), strings.Contains(out, "sw64"):
+			gohostarch = "sw64"
 		case gohostos == "darwin", gohostos == "ios":
 			if strings.Contains(run("", CheckExit, "uname", "-v"), "RELEASE_ARM64_") {
 				gohostarch = "arm64"

@@ -17,4 +17,5 @@ const (
 	RISCV64
 	S390X
 	WASM
+	SW64
 )

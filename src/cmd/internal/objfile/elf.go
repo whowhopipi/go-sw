@@ -108,6 +108,8 @@ func (f *elfFile) goarch() string {
 		return "ppc64"
 	case elf.EM_S390:
 		return "s390x"
+	case elf.EM_SW64:
+		return "sw64"
 	}
 	return ""
 }

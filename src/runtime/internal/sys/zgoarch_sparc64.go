@@ -29,3 +29,4 @@ const GoarchS390x = 0
 const GoarchSparc = 0
 const GoarchSparc64 = 1
 const GoarchWasm = 0
+const GoarchSw64 = 0

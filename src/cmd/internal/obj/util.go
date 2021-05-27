@@ -507,6 +507,7 @@ const (
 	RBaseS390X = 14 * 1024 // range [14k, 15k)
 	RBaseRISCV = 15 * 1024 // range [15k, 16k)
 	RBaseWasm  = 16 * 1024
+	RBaseSW64  = 28 * 1024 // range [28k, 29k)
 )
 
 // RegisterRegister binds a pretty-printer (Rconv) for register

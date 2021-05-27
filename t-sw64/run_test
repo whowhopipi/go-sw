@@ -1,0 +1,98 @@
+#!/bin/bash
+
+#准备工作:需要生成的runtime.test拷贝在同级目录下
+
+set -e
+
+OLDPWD=$(pwd)
+MOD_NAME="runtime"
+GO_TEST="/tmp/go_test"
+FUNC_LIST="list.txt"
+TEST_LOG="log"
+SUCCESS_RESULT=$GO_TEST/$MOD_NAME/success.txt
+FAILED_RESULT=$GO_TEST/$MOD_NAME/failed.txt
+UNKNOW_RESULT=$GO_TEST/$MOD_NAME/unknow.txt
+NORUN_RESULT=$GO_TEST/$MOD_NAME/norun.txt
+
+if [ ! -f "./runtime.test" ];then
+	echo "ERROR:Need to copy runtime.test in the current directory"
+	exit 0
+fi
+
+if [ -d $GO_TEST ];then
+	rm $GO_TEST -rf
+fi
+mkdir -p $GO_TEST/$MOD_NAME
+
+list=$(find $(pwd)/../src/$MOD_NAME -type f -name '*_test.go') 
+
+count=1
+echo "List function"
+for file in ${list[@]}; do
+	while read line
+	do
+		if [[ "$line" =~ ^\/\/.* ]] || [[ "$line" == "" ]]; then
+			continue
+		elif [[ "$line" =~ ^func\ Test.*\{$ ]]; then
+			funcname=$(echo "$line" |awk '{split($2,a,"(");print a[1]}')
+			echo "$count $funcname $file" >>$GO_TEST/$MOD_NAME/$FUNC_LIST
+			let count++
+		fi
+	done <$file
+
+done
+
+echo "All test functions in the $MOD_NAME directory are listed successfully"
+echo "Test start"
+echo "**********running**********"
+mkdir $GO_TEST/$MOD_NAME/$TEST_LOG
+while read line
+do
+	func_num=$(echo "$line" |awk '{print $1}')	
+	func_name=$(echo "$line" |awk '{print $2}')	
+	func_file=$(echo "$line" |awk '{print $3}')
+	echo "$func_name $func_file" >$GO_TEST/$MOD_NAME/$TEST_LOG/$func_num
+	set +e
+	./runtime.test -test.v -test.run=$func_name >>$GO_TEST/$MOD_NAME/$TEST_LOG/$func_num 2>&1
+	set -e
+done <$GO_TEST/$MOD_NAME/$FUNC_LIST
+
+echo "Test end"
+echo "Parse start"
+echo "测试函数名 测试函数所属文件 测试函数输出log文件" >>$FAILED_RESULT
+echo "测试函数名 测试函数所属文件 测试函数输出log文件" >>$SUCCESS_RESULT
+echo "测试函数名 测试函数所属文件 测试函数输出log文件" >>$NORUN_RESULT
+loglist=$(ls $GO_TEST/$MOD_NAME/$TEST_LOG)
+for logname in $loglist; do
+	row_num=0
+	logpath=$GO_TEST/$MOD_NAME/$TEST_LOG/$logname
+	match_flag=0
+	while read line
+	do
+		if [ $row_num -eq 0 ];then
+			func_name=$(echo "$line" |awk '{print $1}')
+			func_file=$(echo "$line" |awk '{print $2}')
+		fi
+
+		if [[ "$line" =~ ^---\ FAIL\:.*\)$ ]] || [[ "$line" =~ ^\[signal\ SIGSEGV\:.*\]$ ]] \
+		|| [[ "$line" =~ ^stack\:\ frame.* ]] || [[ "$line" =~ ^fatal\ error\:.* ]]; then
+			echo "$func_name $func_file $logpath" >>$FAILED_RESULT
+			match_flag=1
+			break
+		elif [[ "$line" =~ ^PASS.* ]]; then
+			echo "$func_name $func_file $logpath" >>$SUCCESS_RESULT
+			match_flag=1
+			break
+		elif [[ "$line" =~ ^testing\:\ warning\:\ no\ tests\ to\ run.* ]]; then
+			echo "$func_name $func_file $logpath" >>$NORUN_RESULT
+			match_flag=1
+			break
+		fi
+
+		row_num=$(($row_num+1)) 
+	done <$logpath
+	if [ $match_flag -eq 0 ];then
+		echo " $logpath" >>$UNKNOW_RESULT
+	fi
+done
+echo "Parse end, all result files are in the directory of $GO_TEST"

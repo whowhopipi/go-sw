@@ -124,6 +124,7 @@ var validCompilerFlags = []*lazyregexp.Regexp{
 	re(`-w`),
 	re(`-x([^@\-].*)`),
 	re(`-v`),
+	re(`-mieee`),
 }
 
 var validCompilerFlagsWithNextArg = []string{

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+#-----调整以下两个输入参数为合适值-----------------
+# 1. 配置好RemoteHost，且已经通过~/.ssh/config配置好了自动登录．即可以不输入密码执行ssh $名字 ls
+RemoteHost=sw-wh
+
+# 2. 测试数据存放数据，若长期多次执行，建议为一个固定目录，否则每次都要重新rsync大概600MB的数据。
+RemoteBaseDir=snyh
+#----------------------
+
+set -e
+unset GOPATH
+unset GOROOT
+unset GOOS
+unset GOARCH
+
+remoteBaseDir=$(ssh $RemoteHost "pwd")/$RemoteBaseDir
+HOSTARCH=$(go env GOHOSTARCH)
+pushd ../src
+TOOLCHAIN=../../go-linux-sw64-bootstrap
+HOSTTOOLCHAIN=../../go-linux-$HOSTARCH-bootstrap
+[ -d $HOSTTOOLCHAIN ] || GOOS=linux GOARCH=$HOSTARCH ./bootstrap.bash
+[ -d $TOOLCHAIN ] || PATH=$HOSTTOOLCHAIN/bin:$PATH GOOS=linux GOARCH=sw64 ./bootstrap.bash
+rsync -Paz $TOOLCHAIN $RemoteHost:$remoteBaseDir/
+popd
+
+ROOT=$remoteBaseDir/go-sw64
+BOOTSTRAP=$remoteBaseDir/go-linux-sw64-bootstrap
+
+rsync -Pazv --exclude="*.test" --exclude="pkg/*" --exclude="bin/*" --exclude=".git/*" $(pwd)/../ $RemoteHost:$remoteBaseDir/go-sw64
+
+echo "start running unit testing"
+ssh $RemoteHost "cd $ROOT/src && GOTRACEBACK=none GOROOT_BOOTSTRAP=$BOOTSTRAP ./all.bash" | tee -i unittest_results.md

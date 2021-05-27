@@ -39,6 +39,7 @@ func main() {
 	gen("ppc64x", tagsPPC64x, zeroPPC64x, copyPPC64x)
 	gen("mips64x", tagsMIPS64x, zeroMIPS64x, copyMIPS64x)
 	gen("riscv64", notags, zeroRISCV64, copyRISCV64)
+	gen("sw64", notags, zeroSW64, copySW64)
 }
 
 func gen(arch string, tags, zero, copy func(io.Writer)) {
@@ -254,4 +255,35 @@ func copyRISCV64(w io.Writer) {
 		fmt.Fprintln(w)
 	}
 	fmt.Fprintln(w, "\tRET")
+}
+
+func tagsSW64(w io.Writer) {
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "// +build sw64")
+	fmt.Fprintln(w)
+}
+
+func zeroSW64(w io.Writer) {
+	// R31: always zero
+	// R28 (aka REGRT1): ptr to memory to be zeroed - 8
+	// On return, R1 points to the last zeroed dword.
+	fmt.Fprintln(w, "TEXT runtime·duffzero(SB), NOSPLIT|NOFRAME, $0-0")
+	for i := 0; i < 128; i++ {
+		fmt.Fprintln(w, "\tSTL\tR31, 8(R1)")
+		fmt.Fprintln(w, "\tADDL\tR1, $8, R1")
+	}
+	fmt.Fprintln(w, "\tRET")
+}
+
+func copySW64(w io.Writer) {
+	fmt.Fprintln(w, "TEXT runtime·duffcopy(SB), NOSPLIT|NOFRAME, $0-0")
+	for i := 0; i < 128; i++ {
+		fmt.Fprintln(w, "\tLDL\tR28, (R1)")
+		fmt.Fprintln(w, "\tADDL\tR1, $8, R1")
+		fmt.Fprintln(w, "\tSTL\tR28, (R2)")
+		fmt.Fprintln(w, "\tADDL\tR2, $8, R2")
+		fmt.Fprintln(w)
+	}
+	fmt.Fprintln(w, "\tRET")
+	//fmt.Fprintln(w, "// TODO: Implement runtime·duffcopy.")
 }

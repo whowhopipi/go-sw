@@ -73,6 +73,7 @@ var okgoarch = []string{
 	"s390x",
 	"sparc64",
 	"wasm",
+	"sw64",
 }
 
 // The known operating systems.
@@ -1552,6 +1553,7 @@ var cgoEnabled = map[string]bool{
 	"linux/riscv64":   true,
 	"linux/s390x":     true,
 	"linux/sparc64":   true,
+	"linux/sw64":      true,
 	"android/386":     true,
 	"android/amd64":   true,
 	"android/arm":     true,

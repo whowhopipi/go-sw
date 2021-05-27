@@ -141,7 +141,7 @@ main 108 nosplit call f; f 0 nosplit; REJECT ppc64 ppc64le
 main 112 nosplit call f; f 0 nosplit; REJECT ppc64 ppc64le amd64 arm64
 main 116 nosplit call f; f 0 nosplit; REJECT ppc64 ppc64le amd64
 main 120 nosplit call f; f 0 nosplit; REJECT ppc64 ppc64le amd64 arm64
-main 124 nosplit call f; f 0 nosplit; REJECT ppc64 ppc64le amd64 386
+main 124 nosplit call f; f 0 nosplit; REJECT ppc64 ppc64le amd64 386 sw64
 main 128 nosplit call f; f 0 nosplit; REJECT
 main 132 nosplit call f; f 0 nosplit; REJECT
 main 136 nosplit call f; f 0 nosplit; REJECT
@@ -289,6 +289,9 @@ TestCases:
 		case "s390x":
 			ptrSize = 8
 			fmt.Fprintf(&buf, "#define REGISTER R10\n")
+		case "sw64":
+			ptrSize = 8
+			fmt.Fprintf(&buf, "#define REGISTER (R27)\n")
 		default:
 			fmt.Fprintf(&buf, "#define REGISTER AX\n")
 		}

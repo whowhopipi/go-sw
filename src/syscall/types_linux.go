@@ -121,6 +121,9 @@ struct my_epoll_event {
 		|| (defined(__mips__) && _MIPS_SIM == _MIPS_SIM_ABI64)
 	int32_t _padFd;
 #endif
+#if defined(__sw_64__)
+        int32_t _padFd;
+#endif
 	int32_t fd;
 	int32_t pad;
 };

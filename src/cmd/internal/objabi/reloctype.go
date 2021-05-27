@@ -249,6 +249,27 @@ const (
 	// symbol's DWARF compile unit.
 	R_ADDRCUOFF
 
+	// A 21 bit branch.
+	// R_SW64_BRADDR replace displacement value, e.g. [20:0] of control format instruction
+	R_SW64_BRADDR
+	R_SW64_GPDISP
+
+	/* The high 16 bits of the displacement from TP to the target.  */
+	R_SW64_TPRELHI
+	/* The low 16 bits of the displacement from TP to the target.  */
+	R_SW64_TPRELLO
+
+	/* Creates a 64-bit offset in the got for the displacement from TP to the target.  */
+	R_SW64_GOTTPREL
+
+	// R_SW64_HINT replace displacement value, e.g. [15:0] of JMP/CALL/RET
+	R_SW64_HINT
+
+	/* The high 16 bits of the displacement from GP to the target.  */
+	R_SW64_GPRELHIGH
+	/* The low 16 bits of the displacement from GP to the target.  */
+	R_SW64_GPRELLOW
+
 	// R_WASMIMPORT resolves to the index of the WebAssembly function import.
 	R_WASMIMPORT
 
@@ -265,7 +286,7 @@ const (
 // the target address in register or memory.
 func (r RelocType) IsDirectCall() bool {
 	switch r {
-	case R_CALL, R_CALLARM, R_CALLARM64, R_CALLMIPS, R_CALLPOWER, R_CALLRISCV:
+	case R_CALL, R_CALLARM, R_CALLARM64, R_CALLMIPS, R_CALLPOWER, R_CALLRISCV, R_SW64_HINT:
 		return true
 	}
 	return false

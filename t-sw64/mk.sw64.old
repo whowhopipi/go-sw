@@ -1,0 +1,62 @@
+#!/bin/bash
+set -e
+unset GOPATH
+unset GOROOT
+unset GOOS
+unset GOARCH
+
+HOSTARCH=$(go env GOHOSTARCH)
+HOSTOS=$(go env GOHOSTOS)
+
+TOOLCHAIN=$(pwd)/../../go-$HOSTOS-$HOSTARCH-bootstrap
+[ -d $TOOLCHAIN ] || (cd ../src && GOOS=$HOSTOS GOARCH=$HOSTARCH ./bootstrap.bash && GOROOT_BOOTSTRAP=$TOOLCHAIN ./make.bash)
+
+GO=$(pwd)/../bin/go
+
+# Enable go build power
+$GO build cmd/compile && cp compile ../pkg/tool/linux_$HOSTARCH/ && rm compile
+$GO build cmd/asm && cp asm ../pkg/tool/linux_$HOSTARCH/ && rm asm
+$GO build cmd/link && cp link ../pkg/tool/linux_$HOSTARCH/ && rm link
+
+# CC="/usr/sw/swgcc530-sw6-cross/usr/bin/gcc5 -pthread -mieee" CGO_ENABLED=1 \
+#   GOARCH=sw64 $GO build -a -o main ./cgo
+# #  GOARCH=sw64 $GO test -c -a -o main ../misc/cgo/testtls
+# patchelf --set-interpreter /lib/ld-linux.so.2 main
+
+# GOARCH=sw64 $GO test -c -a -o main reflect
+# scp -C main sw-lp:~/snyh
+exit
+
+
+RemoteHost=sw-wh
+# 全量测试要求
+# 1. 申威服务器上可以执行go命令，可以为gccgo等任意版本。
+# 2. 配置好RemoteHost，且已经通过~/.ssh/config配置好了自动登录．即可以不输入密码执行ssh $名字 ls
+
+
+GOARCH=sw64 $GO install std cmd
+
+remoteBaseDir=$(ssh $RemoteHost "pwd")/snyh
+echo "sync go-root directory, you can comment this line if you have done this."
+rsync -Pzarv --exclude="*.test" --exclude="pkg/obj/go-build/*" --exclude=".git/*" $(pwd)/../ $RemoteHost:$remoteBaseDir/go-sw64
+
+oldpwd=$(pwd)
+
+list=$(find $(pwd)/../src/ -type f -name '*_test.go' -and ! -path '*testdata/*' \
+            -and ! -path "*/internal/syscall/windows*" \
+            -and ! -path "*/runtime/race/*" \
+           | xargs dirname | sort | uniq)
+
+set +e
+for t in ${list[@]}; do
+    cd $t && GOBACKTRACE=none GOARCH=sw64 $GO test -c
+done
+set -e
+
+cd $oldpwd
+
+echo "sync all test programs"
+rsync -Pzarvm --include "*/" --include="*.test" --exclude="*" ../src $RemoteHost:$remoteBaseDir/go-sw64
+
+GOARCH=sw64 $GO build run_gotest.go && scp -C run_gotest $RemoteHost:$remoteBaseDir && \
+    ssh $RemoteHost "cd $remoteBaseDir && ./run_gotest go-sw64/" | tee -i result.md

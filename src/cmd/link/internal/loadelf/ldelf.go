@@ -381,6 +381,11 @@ func Load(l *loader.Loader, arch *sys.Arch, localSymVersion int, f *bio.Reader, 
 		if mach != elf.EM_S390 || class != elf.ELFCLASS64 {
 			return errorf("elf object but not s390x")
 		}
+
+	case sys.SW64:
+		if mach != elf.EM_SW64 || class != elf.ELFCLASS64 {
+			return errorf("elf object but not sw64")
+		}
 	}
 
 	// load section list into memory.
@@ -960,6 +965,7 @@ func relSize(arch *sys.Arch, pn string, elftype uint32) (uint8, error) {
 		PPC64   = uint32(sys.PPC64)
 		RISCV64 = uint32(sys.RISCV64)
 		S390X   = uint32(sys.S390X)
+		SW64    = uint32(sys.SW64)
 	)
 
 	switch uint32(arch.Family) | elftype<<16 {
@@ -998,6 +1004,15 @@ func relSize(arch *sys.Arch, pn string, elftype uint32) (uint8, error) {
 		PPC64 | uint32(elf.R_PPC64_REL16_LO)<<16,
 		PPC64 | uint32(elf.R_PPC64_REL16_HI)<<16,
 		PPC64 | uint32(elf.R_PPC64_REL16_HA)<<16,
+		SW64 | uint32(elf.R_SW64_SREL16)<<16,
+		SW64 | uint32(elf.R_SW64_LITERAL)<<16,
+		SW64 | uint32(elf.R_SW64_GPRELHIGH)<<16,
+		SW64 | uint32(elf.R_SW64_GPRELLOW)<<16,
+		SW64 | uint32(39)<<16,
+		SW64 | uint32(40)<<16,
+		SW64 | uint32(elf.R_SW64_LITUSE)<<16,
+		SW64 | uint32(elf.R_SW64_HINT)<<16,
+		SW64 | uint32(elf.R_SW64_LITERAL_GOT)<<16,
 		S390X | uint32(elf.R_390_16)<<16,
 		S390X | uint32(elf.R_390_GOT16)<<16,
 		S390X | uint32(elf.R_390_PC16)<<16,
@@ -1041,6 +1056,10 @@ func relSize(arch *sys.Arch, pn string, elftype uint32) (uint8, error) {
 		I386 | uint32(elf.R_386_GOTOFF)<<16,
 		I386 | uint32(elf.R_386_GOTPC)<<16,
 		I386 | uint32(elf.R_386_GOT32X)<<16,
+		SW64 | uint32(elf.R_SW64_SREL32)<<16,
+		SW64 | uint32(elf.R_SW64_REFLONG)<<16,
+		SW64 | uint32(elf.R_SW64_BRADDR)<<16,
+		SW64 | uint32(elf.R_SW64_GPDISP)<<16,
 		PPC64 | uint32(elf.R_PPC64_REL24)<<16,
 		PPC64 | uint32(elf.R_PPC_REL32)<<16,
 		S390X | uint32(elf.R_390_32)<<16,
@@ -1058,6 +1077,7 @@ func relSize(arch *sys.Arch, pn string, elftype uint32) (uint8, error) {
 		ARM64 | uint32(elf.R_AARCH64_ABS64)<<16,
 		ARM64 | uint32(elf.R_AARCH64_PREL64)<<16,
 		PPC64 | uint32(elf.R_PPC64_ADDR64)<<16,
+		SW64 | uint32(elf.R_SW64_REFQUAD)<<16,
 		S390X | uint32(elf.R_390_GLOB_DAT)<<16,
 		S390X | uint32(elf.R_390_RELATIVE)<<16,
 		S390X | uint32(elf.R_390_GOTOFF)<<16,

@@ -9,6 +9,7 @@
 // +build !mips
 // +build !mipsle
 // +build !wasm
+// +build !sw64
 
 package runtime
 

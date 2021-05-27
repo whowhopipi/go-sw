@@ -78,6 +78,8 @@ func Set(GOARCH string) *Arch {
 		return archS390x()
 	case "wasm":
 		return archWasm()
+	case "sw64":
+		return archSW64()
 	}
 	return nil
 }

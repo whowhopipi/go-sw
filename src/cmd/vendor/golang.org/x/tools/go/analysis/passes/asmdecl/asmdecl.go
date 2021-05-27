@@ -90,6 +90,7 @@ var (
 	asmArchRISCV64  = asmArch{name: "riscv64", bigEndian: false, stack: "SP", lr: true}
 	asmArchS390X    = asmArch{name: "s390x", bigEndian: true, stack: "R15", lr: true}
 	asmArchWasm     = asmArch{name: "wasm", bigEndian: false, stack: "SP", lr: false}
+	asmArchSW64     = asmArch{name: "sw64", bigEndian: false, stack: "R30", lr: true}
 
 	arches = []*asmArch{
 		&asmArch386,
@@ -105,6 +106,7 @@ var (
 		&asmArchRISCV64,
 		&asmArchS390X,
 		&asmArchWasm,
+		&asmArchSW64,
 	}
 )
 

@@ -156,6 +156,8 @@ func computeDeferReturn(ctxt *Link, deferReturnSym, s loader.Sym) uint32 {
 					deferreturn -= 4
 				case sys.S390X:
 					deferreturn -= 2
+				case sys.SW64:
+					deferreturn -= 8
 				default:
 					panic(fmt.Sprint("Unhandled architecture:", target.Arch.Family))
 				}

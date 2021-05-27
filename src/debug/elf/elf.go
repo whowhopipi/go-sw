@@ -390,6 +390,7 @@ const (
 	EM_MIPS_RS4_BE Machine = 10     /* MIPS R4000 Big-Endian */
 	EM_ALPHA_STD   Machine = 41     /* Digital Alpha (standard value). */
 	EM_ALPHA       Machine = 0x9026 /* Alpha (written in the absence of an ABI) */
+	EM_SW64        Machine = 0x9916
 )
 
 var machineStrings = []intName{
@@ -581,6 +582,7 @@ var machineStrings = []intName{
 	{10, "EM_MIPS_RS4_BE"},
 	{41, "EM_ALPHA_STD"},
 	{0x9026, "EM_ALPHA"},
+	{0x9916, "EM_SW64"},
 }
 
 func (i Machine) String() string   { return stringName(uint32(i), machineStrings, false) }
@@ -2235,6 +2237,106 @@ const (
 	R_PPC_EMB_BIT_FLD     R_PPC = 115
 	R_PPC_EMB_RELSDA      R_PPC = 116
 )
+
+// Relocation types for SW64.
+type R_SW64 int
+
+const (
+	R_SW64_NONE           R_SW64 = 0  /* No reloc */
+	R_SW64_REFLONG        R_SW64 = 1  /* Direct 32 bit */
+	R_SW64_REFQUAD        R_SW64 = 2  /* Direct 64 bit */
+	R_SW64_GPREL32        R_SW64 = 3  /* GP relative 32 bit */
+	R_SW64_LITERAL        R_SW64 = 4  /* GP relative 16 bit w/optimization */
+	R_SW64_LITUSE         R_SW64 = 5  /* Optimization hint for LITERAL */
+	R_SW64_GPDISP         R_SW64 = 6  /* Add displacement to GP */
+	R_SW64_BRADDR         R_SW64 = 7  /* PC+4 relative 23 bit shifted */
+	R_SW64_HINT           R_SW64 = 8  /* PC+4 relative 16 bit shifted */
+	R_SW64_SREL16         R_SW64 = 9  /* PC relative 16 bit */
+	R_SW64_SREL32         R_SW64 = 10 /* PC relative 32 bit */
+	R_SW64_SREL64         R_SW64 = 11 /* PC relative 64 bit */
+	R_SW64_OP_PUSH        R_SW64 = 12 /* OP stack push */ /* Skip 12 - 16 on sw64; deprecated ECOFF relocs. Now copy 12 - 16 of ALPHA*/
+	R_SW64_OP_STORE       R_SW64 = 13 /* OP stack pop and store */
+	R_SW64_OP_PSUB        R_SW64 = 14 /* OP stack subtract */
+	R_SW64_OP_PRSHIFT     R_SW64 = 15 /* OP stack right shift */
+	R_SW64_GPVALUE        R_SW64 = 16
+	R_SW64_GPRELHIGH      R_SW64 = 17 /* GP relative 32 bit, high 16 bits */
+	R_SW64_GPRELLOW       R_SW64 = 18 /* GP relative 32 bit, low 16 bits */
+	R_SW64_GPREL16        R_SW64 = 19 /* GP relative 16 bit */
+	R_SW64_IMMED_GP_HI32  R_SW64 = 20 /* Skip 20 - 23 on sw64; deprecated ECOFF relocs. Now copy 20 - 23 of ALPHA*/
+	R_SW64_IMMED_SCN_HI32 R_SW64 = 21
+	R_SW64_IMMED_BR_HI32  R_SW64 = 22
+	R_SW64_IMMED_LO32     R_SW64 = 23
+	R_SW64_COPY           R_SW64 = 24 /* Copy symbol at runtime */
+	R_SW64_GLOB_DAT       R_SW64 = 25 /* Create GOT entry */
+	R_SW64_JMP_SLOT       R_SW64 = 26 /* Create PLT entry */
+	R_SW64_RELATIVE       R_SW64 = 27 /* Adjust by program base */
+	R_SW64_BRSGP          R_SW64 = 28 /* Like BRADDR, but assert that the source and target object file share the same GP value, and adjust the target address for STO_SW64_STD_GPLOAD. */
+	R_SW64_TLSGD          R_SW64 = 29 /* 29 - 41 Thread-Local Storage.  */
+	R_SW64_TLSLDM         R_SW64 = 30
+	R_SW64_DTPMOD64       R_SW64 = 31
+	R_SW64_GOTDTPREL      R_SW64 = 32
+	R_SW64_DTPREL64       R_SW64 = 33
+	R_SW64_DTPRELHI       R_SW64 = 34
+	R_SW64_DTPRELLO       R_SW64 = 35
+	R_SW64_DTPREL16       R_SW64 = 36
+	R_SW64_GOTTPREL       R_SW64 = 37
+	R_SW64_TPREL64        R_SW64 = 38
+	R_SW64_TPRELHI        R_SW64 = 39
+	R_SW64_TPRELLO        R_SW64 = 40
+	R_SW64_TPREL16        R_SW64 = 41
+	R_SW64_BR26ADDR       R_SW64 = 42
+	R_SW64_LITERAL_GOT    R_SW64 = 43
+)
+
+var rsw64Strings = []intName{
+	{0, "R_SW64_NONE"},
+	{1, "R_SW64_REFLONG"},
+	{2, "R_SW64_REFQUAD"},
+	{3, "R_SW64_GPREL32"},
+	{4, "R_SW64_LITERAL"},
+	{5, "R_SW64_LITUSE"},
+	{6, "R_SW64_GPDISP"},
+	{7, "R_SW64_BRADDR"},
+	{8, "R_SW64_HINT"},
+	{9, "R_SW64_SREL16"},
+	{10, "R_SW64_SREL32"},
+	{11, "R_SW64_SREL64"},
+	{12, "R_SW64_OP_PUSH"},
+	{13, "R_SW64_OP_STORE"},
+	{14, "R_SW64_OP_PSUB"},
+	{15, "R_SW64_OP_PRSHIFT"},
+	{16, "R_SW64_GPVALUE"},
+	{17, "R_SW64_GPRELHIGH"},
+	{18, "R_SW64_GPRELLOW"},
+	{19, "R_SW64_GPREL16"},
+	{20, "R_SW64_IMMED_GP_HI32"},
+	{21, "R_SW64_IMMED_SCN_HI32"},
+	{22, "R_SW64_IMMED_BR_HI32"},
+	{23, "R_SW64_IMMED_LO32"},
+	{24, "R_SW64_COPY"},
+	{25, "R_SW64_GLOB_DAT"},
+	{26, "R_SW64_JMP_SLOT"},
+	{27, "R_SW64_RELATIVE"},
+	{28, "R_SW64_BRSGP"},
+	{29, "R_SW64_TLSGD"},
+	{30, "R_SW64_TLSLDM"},
+	{31, "R_SW64_DTPMOD64"},
+	{32, "R_SW64_GOTDTPREL"},
+	{33, "R_SW64_DTPREL64"},
+	{34, "R_SW64_DTPRELHI"},
+	{35, "R_SW64_DTPRELLO"},
+	{36, "R_SW64_DTPREL16"},
+	{37, "R_SW64_GOTTPREL"},
+	{38, "R_SW64_TPREL64"},
+	{39, "R_SW64_TPRELHI"},
+	{40, "R_SW64_TPRELLO"},
+	{41, "R_SW64_TPREL16"},
+	{42, "R_SW64_BR26ADDR"},
+	{43, "R_SW64_LITERAL_GOT"},
+}
+
+func (i R_SW64) String() string   { return stringName(uint32(i), rsw64Strings, false) }
+func (i R_SW64) GoString() string { return stringName(uint32(i), rsw64Strings, true) }
 
 var rppcStrings = []intName{
 	{0, "R_PPC_NONE"},

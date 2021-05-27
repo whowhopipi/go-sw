@@ -128,6 +128,10 @@ func (t *Target) IsWasm() bool {
 	return t.Arch.Family == sys.Wasm
 }
 
+func (t *Target) IsSW64() bool {
+	return t.Arch.Family == sys.SW64
+}
+
 //
 // OS Functions
 //

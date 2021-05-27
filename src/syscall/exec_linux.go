@@ -436,7 +436,11 @@ func forkAndExecInChild1(argv0 *byte, argv, envv []*byte, chroot, dir *byte, att
 		// Signal self if parent is already dead. This might cause a
 		// duplicate signal in rare cases, but it won't matter when
 		// using SIGKILL.
-		r1, _ = rawSyscallNoError(SYS_GETPPID, 0, 0, 0)
+		if runtime.GOARCH == "sw64" {
+			_, r1 = rawSyscallNoError(SYS_GETPPID, 0, 0, 0)
+		} else {
+			r1, _ = rawSyscallNoError(SYS_GETPPID, 0, 0, 0)
+		}
 		if r1 != ppid {
 			pid, _ := rawSyscallNoError(SYS_GETPID, 0, 0, 0)
 			_, _, err1 := RawSyscall(SYS_KILL, pid, uintptr(sys.Pdeathsig), 0)

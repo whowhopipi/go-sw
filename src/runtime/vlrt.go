@@ -23,7 +23,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// +build arm 386 mips mipsle
+// +build arm 386 mips mipsle sw64
 
 package runtime
 
