@@ -1147,7 +1147,7 @@ func (f *File) applyRelocationsSW64(dst []byte, rels []byte) error {
 	for b.Len() > 0 {
 		binary.Read(b, f.ByteOrder, &rela)
 		symNo := rela.Info >> 32
-		t := R_SW_64(rela.Info & 0xffff)
+		t := R_SW64(rela.Info & 0xffff)
 
 		if symNo == 0 || symNo > uint64(len(symbols)) {
 			continue
@@ -1160,13 +1160,13 @@ func (f *File) applyRelocationsSW64(dst []byte, rels []byte) error {
 			continue
 		}
 		switch t {
-		case R_SW_64_REFQUAD:
+		case R_SW64_REFQUAD:
 			if rela.Off+8 >= uint64(len(dst)) || rela.Addend < 0 {
 				continue
 			}
 			val64 := val + uint64(rela.Addend)
 			f.ByteOrder.PutUint64(dst[rela.Off:rela.Off+8], val64)
-		case R_SW_64_REFLONG:
+		case R_SW64_REFLONG:
 			if rela.Off+4 >= uint64(len(dst)) || rela.Addend < 0 {
 				continue
 			}

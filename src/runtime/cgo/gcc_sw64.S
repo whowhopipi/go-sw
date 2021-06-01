@@ -13,7 +13,7 @@
  * so they must be saved explicitly, along with $26 (RA).
  */
 
-#if defined(__sw_64_sw2__)
+#if defined(__sw_64_sw6__)
     #define LDD ldt
     #define STD stt
     #define CALL jsr
