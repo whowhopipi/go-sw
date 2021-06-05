@@ -33656,7 +33656,7 @@ var opcodeTable = [...]opInfo{
 	},
 	{
 		name:              "MOVFconst",
-		auxType:           auxFloat32,
+		auxType:           auxFloat64,
 		argLen:            0,
 		rematerializeable: true,
 		asm:               sw64.ALDF,
@@ -34156,18 +34156,17 @@ var opcodeTable = [...]opInfo{
 	},
 	{
 		name:         "CALLstatic",
-		auxType:      auxSymOff,
+		auxType:      auxCallOff,
 		argLen:       1,
 		clobberFlags: true,
 		call:         true,
-		symEffect:    SymNone,
 		reg: regInfo{
 			clobbers: 1152921504137084927, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 g R16 R17 R18 R19 R20 R21 R22 R23 R24 R25 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30
 		},
 	},
 	{
 		name:         "CALLclosure",
-		auxType:      auxInt64,
+		auxType:      auxCallOff,
 		argLen:       3,
 		clobberFlags: true,
 		call:         true,
@@ -34181,7 +34180,7 @@ var opcodeTable = [...]opInfo{
 	},
 	{
 		name:         "CALLinter",
-		auxType:      auxInt64,
+		auxType:      auxCallOff,
 		argLen:       2,
 		clobberFlags: true,
 		call:         true,
@@ -34330,6 +34329,7 @@ var opcodeTable = [...]opInfo{
 		name:    "LoweredPanicBoundsA",
 		auxType: auxInt64,
 		argLen:  3,
+		call:    true,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 8},  // R3
@@ -34341,6 +34341,7 @@ var opcodeTable = [...]opInfo{
 		name:    "LoweredPanicBoundsB",
 		auxType: auxInt64,
 		argLen:  3,
+		call:    true,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 4}, // R2
@@ -34352,6 +34353,7 @@ var opcodeTable = [...]opInfo{
 		name:    "LoweredPanicBoundsC",
 		auxType: auxInt64,
 		argLen:  3,
+		call:    true,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 2}, // R1
