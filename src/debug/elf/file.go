@@ -1154,8 +1154,7 @@ func (f *File) applyRelocationsSW64(dst []byte, rels []byte) error {
 		}
 		//zxw new change
 		sym := &symbols[symNo-1]
-		needed, val := relocSymbolTargetOK(sym)
-		if !needed {
+		if !canApplyRelocation(sym) {
 			// We don't handle non-section relocations for now.
 			continue
 		}
@@ -1164,13 +1163,13 @@ func (f *File) applyRelocationsSW64(dst []byte, rels []byte) error {
 			if rela.Off+8 >= uint64(len(dst)) || rela.Addend < 0 {
 				continue
 			}
-			val64 := val + uint64(rela.Addend)
+			val64 := sym.Value + uint64(rela.Addend)
 			f.ByteOrder.PutUint64(dst[rela.Off:rela.Off+8], val64)
 		case R_SW64_REFLONG:
 			if rela.Off+4 >= uint64(len(dst)) || rela.Addend < 0 {
 				continue
 			}
-			val32 := uint32(val) + uint32(rela.Addend)
+			val32 := uint32(sym.Value) + uint32(rela.Addend)
 			f.ByteOrder.PutUint32(dst[rela.Off:rela.Off+4], val32)
 		}
 	}
