@@ -716,7 +716,7 @@ func (p *Parser) asmInstruction(op obj.As, cond string, a []obj.Addr) {
 			if a[1].Type == obj.TYPE_REG {
 				prog.Reg = p.getRegister(prog, op, &a[1])
 			} else {
-				prog.RestArgs = []obj.Addr{a[1]}
+				prog.SetRestArgs([]obj.Addr{a[1]})
 			}
 
 			prog.To = a[2]
@@ -757,7 +757,7 @@ func (p *Parser) asmInstruction(op obj.As, cond string, a []obj.Addr) {
 		}
 		if p.arch.Family == sys.SW64 {
 			prog.From = a[0]
-			prog.RestArgs = []obj.Addr{a[1], a[2]}
+			prog.SetRestArgs([]obj.Addr{a[1], a[2]})
 			prog.To = a[3]
 			break
 		}

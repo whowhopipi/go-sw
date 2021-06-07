@@ -384,11 +384,14 @@ func disasm_ppc64(code []byte, pc uint64, lookup lookupFunc, byteOrder binary.By
 	return text, size
 }
 
-func disasm_sw64(code []byte, pc uint64, lookup lookupFunc, byteOrder binary.ByteOrder) (string, int) {
+func disasm_sw64(code []byte, pc uint64, lookup lookupFunc, byteOrder binary.ByteOrder, gnuAsm bool) (string, int) {
 	inst, err := sw64asm.Decode(code)
 	var text string
 	if err != nil {
 		text = "?"
+	} else if gnuAsm {
+		text = fmt.Sprintf("%-36s // %s", sw64asm.GoSyntax(inst, pc, lookup, textReader{code, pc}), sw64asm.GNUSyntax(inst))
+
 	} else {
 		text = sw64asm.GoSyntax(inst, pc, lookup, textReader{code, pc})
 	}

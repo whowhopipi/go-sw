@@ -192,7 +192,7 @@ func (c *ctxt77) stacksplit(p *obj.Prog, framesize int32) *obj.Prog {
 
 	if c.cursym.CFunc() {
 		p.To.Sym = c.ctxt.Lookup("runtime.morestackc")
-	} else if !c.cursym.Func.Text.From.Sym.NeedCtxt() {
+	} else if !c.cursym.Func().Text.From.Sym.NeedCtxt() {
 		p.To.Sym = c.ctxt.Lookup("runtime.morestack_noctxt")
 	} else {
 		p.To.Sym = c.ctxt.Lookup("runtime.morestack")
@@ -235,12 +235,12 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 	// 1. handle ARET and ATEXT to setup function prologue and epilogue
 	// 2. adjust Prog.Spadj if the prog change hardward SP
 
-	if cursym.Func.Text == nil || cursym.Func.Text.Link == nil {
+	if cursym.Func().Text == nil || cursym.Func().Text.Link == nil {
 		return
 	}
 
 	c := ctxt77{ctxt: ctxt, newprog: newprog, cursym: cursym}
-	p := c.cursym.Func.Text
+	p := c.cursym.Func().Text
 	textstksiz := p.To.Offset
 
 	//zxw add
@@ -258,8 +258,8 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 		}
 	}
 
-	c.cursym.Func.Args = p.To.Val.(int32)
-	c.cursym.Func.Locals = int32(textstksiz)
+	c.cursym.Func().Args = p.To.Val.(int32)
+	c.cursym.Func().Locals = int32(textstksiz)
 
 	if textstksiz < 0 {
 		ctxt.Diag("Use NOFRAME attribute instead of a negative frame size.\n%v\n", p)
@@ -273,9 +273,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 	 * expand RET
 	 */
 
-	q := (*obj.Prog)(nil)
-	var q1 *obj.Prog
-	for p := c.cursym.Func.Text; p != nil; p = p.Link {
+	for p := c.cursym.Func().Text; p != nil; p = p.Link {
 		switch p.As {
 		case obj.ATEXT:
 			p.Mark |= LEAF
@@ -283,18 +281,10 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 		case obj.ARET:
 			break
 
-		case obj.ANOP:
-			if p.Link != nil {
-				q1 = p.Link
-				q.Link = q1 // q is non-nop
-				q1.Mark |= p.Mark
-			}
-			continue
-
 		case ACALL,
 			obj.ADUFFZERO,
 			obj.ADUFFCOPY:
-			c.cursym.Func.Text.Mark &^= LEAF
+			c.cursym.Func().Text.Mark &^= LEAF
 			fallthrough
 
 		case AJMP,
@@ -314,7 +304,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 			AFBLE,
 			AFBGT,
 			AFBGE:
-			q1 = p.Pcond
+			q1 := p.To.Target()
 
 			if q1 != nil {
 				for q1.As == obj.ANOP {
@@ -327,12 +317,11 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 			break
 		}
 
-		q = p
 	}
 
 	autosize := int32(0)
 	var retjmp *obj.LSym
-	for p := cursym.Func.Text; p != nil; p = p.Link {
+	for p := cursym.Func().Text; p != nil; p = p.Link {
 		o := p.As
 		switch o {
 		case obj.ATEXT:
@@ -357,7 +346,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 
 			//convert virtual SP to hardware SP
 			//see also: https://bj.git.sndu.cn/xiabin/go-sw64/wikis/stack-frame-layout
-			for p := cursym.Func.Text; p != nil; p = p.Link {
+			for p := cursym.Func().Text; p != nil; p = p.Link {
 				switch p.To.Name {
 				case obj.NAME_PARAM:
 					p.To.Type = obj.TYPE_ADDR
@@ -372,19 +361,19 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 				}
 			}
 
-			if autosize == 0 && c.cursym.Func.Text.Mark&LEAF == 0 {
-				if c.cursym.Func.Text.From.Sym.NoSplit() {
+			if autosize == 0 && c.cursym.Func().Text.Mark&LEAF == 0 {
+				if c.cursym.Func().Text.From.Sym.NoSplit() {
 					if ctxt.Debugvlog {
 						ctxt.Logf("save suppressed in: %s\n", c.cursym.Name)
 					}
 
-					c.cursym.Func.Text.Mark |= LEAF
+					c.cursym.Func().Text.Mark |= LEAF
 				}
 			}
 
 			//p.To.Offset = int64(autosize) - ctxt.FixedFrameSize()
 
-			if c.cursym.Func.Text.Mark&LEAF != 0 {
+			if c.cursym.Func().Text.Mark&LEAF != 0 {
 				c.cursym.Set(obj.AttrLeaf, true)
 				if p.From.Sym.NoFrame() {
 					//break
@@ -424,7 +413,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 			// snyh_TODO: #131
 			q = insertLDGP(q, newprog, REGZERO)
 
-			if c.cursym.Func.Text.From.Sym.Wrapper() {
+			if c.cursym.Func().Text.From.Sym.Wrapper() {
 				// if(g->panic != nil && g->panic->argp == FP)
 				//    g->panic->argp = bottom-of-frame
 
@@ -666,7 +655,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 			}
 		}
 	}
-	for p := cursym.Func.Text; p != nil; p = p.Link {
+	for p := cursym.Func().Text; p != nil; p = p.Link {
 		switch p.As {
 		case obj.ACALL, obj.AJMP:
 			p = insertLDGP(p, newprog, REGZERO)

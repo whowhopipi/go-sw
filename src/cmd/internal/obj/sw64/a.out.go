@@ -124,16 +124,18 @@ const (
 
 //zxw add
 var SW64DWARFRegisters = map[int16]int16{}
+
 func init() {
-        // f assigns dwarfregisters[from:to] = (base):(to-from+base)
-        f := func(from, to, base int16) {
-                for r := int16(from); r <= to; r++ {
-                        SW64DWARFRegisters[r] = (r - from) + base
-                }
-        }
-        f(REG_R0, REG_R31, 0)
-        f(REG_F0, REG_F31, 32) // For 32-bit SW64, compiler only uses even numbered registers --  see cmd/compile/internal/ssa/gen/MIPSOps.go
+	// f assigns dwarfregisters[from:to] = (base):(to-from+base)
+	f := func(from, to, base int16) {
+		for r := int16(from); r <= to; r++ {
+			SW64DWARFRegisters[r] = (r - from) + base
+		}
+	}
+	f(REG_R0, REG_R31, 0)
+	f(REG_F0, REG_F31, 32) // For 32-bit SW64, compiler only uses even numbered registers --  see cmd/compile/internal/ssa/gen/SW64Ops.go
 }
+
 const (
 	BIG = 32766
 )
@@ -367,15 +369,15 @@ const (
 
 //zxw add
 const (
-       /* mark flags */
-       FOLL    = 1 << 0
-       LABEL   = 1 << 1
-       LEAF    = 1 << 2
-       SYNC    = 1 << 3
-       BRANCH  = 1 << 4
-       LOAD    = 1 << 5
-       FCMP    = 1 << 6
-       NOSCHED = 1 << 7
+	/* mark flags */
+	FOLL    = 1 << 0
+	LABEL   = 1 << 1
+	LEAF    = 1 << 2
+	SYNC    = 1 << 3
+	BRANCH  = 1 << 4
+	LOAD    = 1 << 5
+	FCMP    = 1 << 6
+	NOSCHED = 1 << 7
 
-       NSCHED = 20
+	NSCHED = 20
 )

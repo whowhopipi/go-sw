@@ -155,7 +155,11 @@ var oprange [ALAST & obj.AMask][]Optab
 var xcmp [C_NCLASS][C_NCLASS]bool
 
 func span77(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
-	p := cursym.Func.Text
+	if ctxt.Retpoline {
+		ctxt.Diag("-spectre=ret not supported on mips")
+		ctxt.Retpoline = false // don't keep printing
+	}
+	p := cursym.Func().Text
 	if p == nil || p.Link == nil { // handle external functions and ELF section symbols
 		return
 	}
@@ -204,26 +208,26 @@ func span77(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 		for bflag != 0 {
 			bflag = 0
 			pc = 0
-			for p = c.cursym.Func.Text.Link; p != nil; p = p.Link {
+			for p = c.cursym.Func().Text.Link; p != nil; p = p.Link {
 				p.Pc = pc
 				o = c.oplook(p)
 				// very large conditional branches
-				if (o.type_ == 3 || o.type_ == 10) && p.Pcond != nil {
-					otxt = p.Pcond.Pc - pc
+				if (o.type_ == 3 || o.type_ == 10) && p.To.Target() != nil {
+					otxt = p.To.Target().Pc - pc
 					if otxt < -(1<<17)+10 || otxt >= (1<<17)-10 {
 						q = c.newprog()
 						q.Link = p.Link
 						p.Link = q
 						q.As = ABR
 						q.To.Type = obj.TYPE_BRANCH
-						q.Pcond = p.Pcond
-						p.Pcond = q
+						q.To.SetTarget(p.To.Target())
+					 	p.To.SetTarget(q)
 						q = c.newprog()
 						q.Link = p.Link
 						p.Link = q
 						q.As = ABR
 						q.To.Type = obj.TYPE_BRANCH
-						q.Pcond = q.Link.Link
+						q.To.SetTarget(q.Link.Link)
 						c.addnop(p.Link)
 						c.addnop(p)
 						bflag = 1
@@ -253,7 +257,7 @@ func span77(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 	bp := c.cursym.P
 	var i int32
 	var out [5]uint32
-	for p := c.cursym.Func.Text.Link; p != nil; p = p.Link {
+	for p := c.cursym.Func().Text.Link; p != nil; p = p.Link {
 		c.pc = p.Pc
 		o = c.oplook(p)
 		if int(o.size) > 4*len(out) {
@@ -275,25 +279,37 @@ func span77(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 	// We use REGTMP as a scratch register during call injection,
 	// so instruction sequences that use REGTMP are unsafe to
 	// preempt asynchronously.
-	obj.MarkUnsafePoints(c.ctxt, c.cursym.Func.Text, c.newprog, c.isUnsafePoint)
+	obj.MarkUnsafePoints(c.ctxt, c.cursym.Func().Text, c.newprog, c.isUnsafePoint, c.isRestartable)
 
 	verifyLock(c)
 }
 
-//zxw new add
-// Return whether p is an unsafe point.
+// isUnsafePoint returns whether p is an unsafe point.
 func (c *ctxt77) isUnsafePoint(p *obj.Prog) bool {
-	if p.From.Reg == REGTMP || p.To.Reg == REGTMP || p.Reg == REGTMP {
-		return true
+	// If p explicitly uses REGTMP, it's unsafe to preempt, because the
+	// preemption sequence clobbers REGTMP.
+	return p.From.Reg == REGTMP || p.To.Reg == REGTMP || p.Reg == REGTMP
+}
+
+// isRestartable returns whether p is a multi-instruction sequence that,
+// if preempted, can be restarted.
+func (c *ctxt77) isRestartable(p *obj.Prog) bool {
+	if c.isUnsafePoint(p) {
+		return false
 	}
-	// Most of the multi-instruction sequence uses REGTMP, except
-	// ones marked safe.
+	// If p is a multi-instruction sequence with uses REGTMP inserted by
+	// the assembler in order to materialize a large constant/offset, we
+	// can restart p (at the start of the instruction sequence), recompute
+	// the content of REGTMP, upon async preemption. Currently, all cases
+	// of assembler-inserted REGTMP fall into this category.
+	// If p doesn't use REGTMP, it can be simply preempted, so we don't
+	// mark it.
 	o := c.oplook(p)
 	return o.size > 4 && o.flag&NOTUSETMP == 0
 }
 
 func verifyLock(c ctxt77) {
-	for p := c.cursym.Func.Text.Link; p != nil; p = p.Link {
+	for p := c.cursym.Func().Text.Link; p != nil; p = p.Link {
 		// 判断锁装入指令与写锁标志指令是否成对出现
 		if p.As == ALLDW || p.As == ALLDL {
 			for q := p; q != nil; q = q.Link {
@@ -445,10 +461,10 @@ func (c *ctxt77) oplook(p *obj.Prog) *Optab {
 
 	a3 := C_NONE
 	if len(p.RestArgs) == 2 {
-		a3 = int(p.RestArgs[1].Class)
+		a3 = int(p.RestArgs[1].Addr.Class)
 		if a3 == 0 {
-			a3 = c.aclass(&p.RestArgs[1]) + 1
-			p.RestArgs[1].Class = int8(a3)
+			a3 = c.aclass(&p.RestArgs[1].Addr) + 1
+			p.GetFrom3().Class = int8(a3)
 		}
 		a3--
 
@@ -462,10 +478,10 @@ func (c *ctxt77) oplook(p *obj.Prog) *Optab {
 		}
 	}
 	if (p.Reg == 0) && (len(p.RestArgs) != 0) {
-		a2 = int(p.RestArgs[0].Class)
+		a2 = int(p.RestArgs[0].Addr.Class)
 		if a2 == 0 {
-			a2 = c.aclass(&p.RestArgs[0]) + 1
-			p.RestArgs[0].Class = int8(a2)
+			a2 = c.aclass(&p.RestArgs[0].Addr) + 1
+			p.RestArgs[0].Addr.Class = int8(a2)
 		}
 		a2--
 	}
@@ -887,7 +903,7 @@ func (c *ctxt77) asmout(p *obj.Prog, o *Optab, out []uint32) {
 		if p.To.Type == obj.TYPE_BRANCH {
 			target := p.To.Val.(*obj.Prog)
 			offset := (target.Pc - p.Pc - 4)
-			//offset := (p.Pcond.Pc - p.Pc - 4)
+			//offset := (p.To.Target().Pc - p.Pc - 4)
 			o1 = OP_CONTROL(c.oprrr(p.As), getRegister(p.From.Reg), int32(offset)/4)
 		} else {
 			o1 = OP_CONTROL(c.oprrr(p.As), getRegister(p.From.Reg), int32(p.To.Offset)/4)
@@ -936,7 +952,7 @@ func (c *ctxt77) asmout(p *obj.Prog, o *Optab, out []uint32) {
 		if p.To.Type == obj.TYPE_BRANCH {
 			target := p.To.Val.(*obj.Prog)
 			offset := (target.Pc - p.Pc - 4)
-			//offset := (p.Pcond.Pc - p.Pc - 4)
+			//offset := (p.To.Target().Pc - p.Pc - 4)
 			o1 = OP_CONTROL(c.oprrr(p.As), getRegister(p.From.Reg), int32(offset)/4)
 		} else {
 			o1 = OP_CONTROL(c.oprrr(p.As), getRegister(p.From.Reg), int32(p.To.Offset)/4)
