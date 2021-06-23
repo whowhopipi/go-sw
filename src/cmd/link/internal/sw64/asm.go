@@ -47,7 +47,7 @@ func elfreloc1(ctxt *ld.Link, out *ld.OutBuf, ldr *loader.Loader, s loader.Sym, 
 		out.Write64(uint64(40) | uint64(elfsym)<<32)
 	case objabi.R_SW64_GOTTPREL:
 		out.Write64(uint64(37) | uint64(elfsym)<<32)
-	case objabi.R_ADDR:
+	case objabi.R_ADDR, objabi.R_DWARFSECREF:
 		switch r.Size {
 		case 4:
 			out.Write64(uint64(elf.R_SW64_REFLONG) | uint64(elfsym)<<32)
@@ -98,12 +98,7 @@ func archreloc(target *ld.Target, ldr *loader.Loader, syms *ld.ArchSyms, r loade
 		if base != uint32(val) {
 			log.Fatalf("The R_SW64_GPDISP %v has been broken in %v.", r, s)
 		}
-		val = int64(base + uint32(uint16(hi)))
-
-		sdata := ldr.Data(s)
-		nextPosition := int64(r.Off()) + r.Add()
-		base2 := (target.Arch.ByteOrder.Uint32(sdata[nextPosition:])) & 0xffff0000
-		target.Arch.ByteOrder.PutUint32(sdata[nextPosition:], base2+uint32(uint16(lo)))
+		val = int64((uint32(hi) << 16) + uint32(uint16(lo)))
 		return val, noExtReloc, isOk
 	case objabi.R_SW64_TPRELHI, objabi.R_SW64_TPRELLO:
 		hi, lo := splitSymAddr(ldr, r, 16)
@@ -179,7 +174,8 @@ func gpdispAddr(pc int64) (hi int16, lo int16) {
 }
 
 func splitGPRelAddr(ldr *loader.Loader, r loader.Reloc) (hi int16, lo int16) {
-	addr := ldr.SymValue(r.Sym()) + r.Add() - gpAddr()
+	rs := ldr.ResolveABIAlias(r.Sym())
+	addr := ldr.SymValue(rs) + r.Add() - gpAddr()
 	hi, lo = splitAddr(addr)
 	if int64(hi)<<16+int64(lo) != addr {
 		log.Fatalf("Symbol %q is out of range when split GP relative address\n", r.Sym())
@@ -189,7 +185,8 @@ func splitGPRelAddr(ldr *loader.Loader, r loader.Reloc) (hi int16, lo int16) {
 
 // splitSymaddr split address of s to two 16 signed bit
 func splitSymAddr(ldr *loader.Loader, r loader.Reloc, off int64) (hi int16, lo int16) {
-	addr := ldr.SymValue(r.Sym()) + r.Add() + off
+	rs := ldr.ResolveABIAlias(r.Sym())
+	addr := ldr.SymValue(rs) + r.Add() + off
 	hi, lo = splitAddr(addr)
 	if int64(hi)<<16+int64(lo) != addr {
 		log.Fatalf("Symbol %q is out of range when split symbol address\n",

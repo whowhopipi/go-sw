@@ -529,7 +529,15 @@ func (st *relocSymState) relocsym(s loader.Sym, P []byte) {
 					st.err.Errorf(s, "non-pc-relative relocation address for %s is too big: %#x", ldr.SymName(rs), uint64(o))
 				}
 			}
-			target.Arch.ByteOrder.PutUint32(P[off:], uint32(o))
+			if target.IsSW64() && rt == objabi.R_SW64_GPDISP && !target.IsExternal() {
+				Hi := uint16(o >> 16)
+				Lo := uint16(o)
+				target.Arch.ByteOrder.PutUint16(P[off:], Hi)
+				target.Arch.ByteOrder.PutUint16(P[off+4:], Lo)
+
+			} else {
+				target.Arch.ByteOrder.PutUint32(P[off:], uint32(o))
+			}
 		case 8:
 			target.Arch.ByteOrder.PutUint64(P[off:], uint64(o))
 		}
