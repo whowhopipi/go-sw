@@ -633,30 +633,9 @@ TEXT _cgo_topofstack(SB), NOSPLIT, $8
 	RET
 
 
-
-// cgocallback(void (*fn)(void*), void *frame, uintptr framesize, uintptr ctxt)
-// Turn the fn into a Go func (by taking its address) and call
-// cgocallback_gofunc.
-TEXT runtime·cgocallback(SB), NOSPLIT, $32-32
-	LDI	R1, $fn+0(FP)
-	STL	R1, 8(SP)
-	
-	LDL	R1, frame+8(FP)
-	STL	R1, 16(SP)
-	
-	LDL	R1, framesize+16(FP)
-	STL	R1, 24(SP)
-	
-	LDL	R1, ctxt+24(FP)
-	STL	R1, 32(SP)
-	
-	SYMADDR	R27, $runtime·cgocallback_gofunc(SB)
-	CALL	R26, (R27)
-	RET
-
 // cgocallback_gofunc(FuncVal*, void *frame, uintptr framesize, uintptr ctxt)
 // See cgocall.go for more details.
-TEXT ·cgocallback_gofunc(SB), NOSPLIT, $16-32
+TEXT ·cgocallback(SB), NOSPLIT, $24-24
 	NO_LOCAL_POINTERS
 
 	// Load m and g from thread-local storage.
@@ -704,7 +683,7 @@ havem:
 
 	LDL	R1, m_g0(R3)
 	LDL	R2, (g_sched+gobuf_sp)(R1)
-	STL	R2, savedsp-16(SP)
+	STL	R2, savedsp-24(SP)
 	STL	SP,  (g_sched+gobuf_sp)(R1)
 
 	// Switch to m->curg stack and call runtime.cgocallbackg.
@@ -727,18 +706,23 @@ havem:
 	CALL	runtime·save_g(SB)
 	LDL	R2, (g_sched+gobuf_sp)(g)
 	LDL	R27, (g_sched+gobuf_pc)(g)
-	STL	R27, $-24(R2)
-	LDL	R1, ctxt+24(FP)
-	STL	R1, $-16(R2)
-	LDI	SP, $-24(R2)
+	STL	R27, -32(R2) // save LR 
+  	//  Gather our arguments into registers.
+  	LDL 	R16, fn+0(FP)
+  	LDL	R17, frame+8(FP)
+  	LDL 	R18, ctxt+16(FP)
+  	LDI 	SP, $-32(R2) //switch stack
+	STL 	R16, 8(SP)
+	STL 	R17, 16(SP)
+	STL 	R18, 24(SP)
 	CALL	runtime·cgocallbackg(SB)
-	
+
 	// Restore g->sched (== m->curg->sched) from saved values.
 	LDL	R27, 0(SP)
 	STL	R27, (g_sched+gobuf_pc)(g)
-	LDI	R2, $24(SP)
+	LDI	R2, $32(SP)
 	STL	R2, (g_sched+gobuf_sp)(g)
-	
+
 	// Switch back to m->g0's stack and restore m->g0->sched.sp.
 	// (Unlike m->curg, the g0 goroutine never uses sched.pc,
 	// so we do not have to restore it.)
@@ -746,7 +730,7 @@ havem:
 	LDL	g, m_g0(R3)
 	CALL	runtime·save_g(SB)
 	LDL	SP, (g_sched+gobuf_sp)(g)
-	LDL	R2, savedsp-16(SP)
+	LDL	R2, savedsp-24(SP)
 	STL	R2, (g_sched+gobuf_sp)(g)
 	
 	// If the m on entry was nil, we called needm above to borrow an m

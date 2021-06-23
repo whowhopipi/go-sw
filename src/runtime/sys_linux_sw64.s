@@ -567,6 +567,9 @@ TEXT runtime·pipe(SB),NOSPLIT|NOFRAME,$0-12
 	LDI	R16, $r+0(FP)
 	LDI	R17, ZERO
 	SYSCALL(SYS_pipe2)
+	BEQ	R19, ok
+	SUBL	ZERO, R0, R0 
+ok:
 	STW	R0, errno+8(FP)
 	RET
 
@@ -575,6 +578,9 @@ TEXT runtime·pipe2(SB),NOSPLIT|NOFRAME,$0-20
 	LDI	R16, $r+8(FP)
 	LDW	R17, flags+0(FP)
 	SYSCALL(SYS_pipe2)
+	BEQ	R19, ok
+	SUBL	ZERO, R0, R0 
+ok:
 	STW	R0, errno+16(FP)
 	RET
 

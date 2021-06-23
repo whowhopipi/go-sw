@@ -228,6 +228,35 @@ TEXT runtime∕internal∕atomic·Or8(SB), NOFRAME|NOSPLIT, $0-9
 	BEQ	R1, -6(PC)
 	RET
 
+// void func And(addr *uint32, v uint32)
+TEXT runtime∕internal∕atomic·And(SB), NOFRAME|NOSPLIT, $0-12
+	LDL	R1, ptr+0(FP)
+	LDW	R2, val+8(FP)
+
+	MEMB
+	LLDW	R4, (R1)
+	LDI	R3, 1
+	WR_F	R3
+	AND	R4, R2, R4
+	LSTW	R4, (R1)
+	RD_F	R3
+	BEQ	R3, -6(PC)
+	RET
+
+// func Or(addr *uint32, v uint32)
+TEXT runtime∕internal∕atomic·Or(SB), NOFRAME|NOSPLIT, $0-12
+	LDL	R1, ptr+0(FP)
+	LDW	R2, val+8(FP)
+  
+	MEMB
+	LLDW	R4, (R1)
+	LDI	R3, 1
+	WR_F	R3
+	BIS	R4, R2, R4
+	LSTW	R4, (R1)
+	RD_F	R3
+	BEQ	R3, -6(PC)
+	RET
 //zxw new add
 TEXT runtime∕internal∕atomic·Store8(SB), NOFRAME|NOSPLIT, $0-9
 	LDL	R3, ptr+0(FP)
