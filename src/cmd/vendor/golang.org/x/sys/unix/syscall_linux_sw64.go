@@ -11,7 +11,8 @@ const (
 	//generate by handle in zerrors_linux_sw64.go
 	//_snyh_TODO: this should be generate by improving build script
 	TIOCGWINSZ = 0x40087468
-	AF_XDP     = 0x2c
+	AF_XDP     = 0x2c //TODO:may create problem
+	CAN_J1939  = 0x7  //TODO: may create problem
 )
 
 //generate by handle in ztypes_linux_sw64.go
@@ -122,7 +123,7 @@ func Getegid() (egid int) { _, egid = getxgid(); return }
 
 //sys	Statfs(path string, buf *Statfs_t) (err error)
 //sys	Fstatfs(fd int, buf *Statfs_t) (err error)
-//sys	Dup2(oldfd int, newfd int) (err error)
+//sys	dup2(oldfd int, newfd int) (err error)
 //sys	Fchown(fd int, uid int, gid int) (err error)
 //sys	Ftruncate(fd int, length int64) (err error)
 //sysnb	Getrlimit(resource int, rlim *Rlimit) (err error)
@@ -132,8 +133,8 @@ func Getegid() (egid int) { _, egid = getxgid(); return }
 //sys	Pwrite(fd int, p []byte, offset int64) (n int, err error) = SYS_PWRITE64
 //sys	Seek(fd int, offset int64, whence int) (off int64, err error) = SYS_LSEEK
 //sys	sendfile(outfd int, infd int, offset *int64, count int) (written int, err error)
-//sys	Setfsgid(gid int) (err error)
-//sys	Setfsuid(uid int) (err error)
+//sys	setfsgid(gid int) (prev int, err error)
+//sys	setfsuid(uid int) (prev int, err error)
 //sysnb	Setregid(rgid int, egid int) (err error)
 //sysnb	Setresgid(rgid int, egid int, sgid int) (err error)
 //sysnb	Setresuid(ruid int, euid int, suid int) (err error)
@@ -256,6 +257,3 @@ func Select(nfd int, r *FdSet, w *FdSet, e *FdSet, timeout *Timeval) (n int, err
 //sys utimes(path string, times *[2]Timeval) (err error)
 
 //sys	Renameat(olddirfd int, oldpath string, newdirfd int, newpath string) (err error)
-func (msghdr *Msghdr) SetIovlen(length int) {
-	msghdr.Iovlen = uint64(length)
-}
