@@ -171,6 +171,10 @@ const (
 	SYS_USERFAULTFD                = 171
 	SYS_MEMBARRIER                 = 172
 	SYS_MLOCK2                     = 173
+	SYS_GETUID                     = 176
+	SYS_GETEUID                    = 177
+	SYS_GETGID                     = 178
+	SYS_GETEGID                    = 179
 	SYS_OSF_ALT_PLOCK              = 181
 	SYS_OSF_GETMNT                 = 184
 	SYS_OSF_ALT_SIGPENDING         = 187

@@ -458,4 +458,4 @@ main(void)
 '
 ) >_errors.c
 
-$CC $ccflags -o _errors _errors.c && $GORUN ./_errors && rm -f _errors.c _errors _const.go _error.grep _signal.grep _error.out
+$CC $ccflags -o _errors _errors.c && $GORUN ./_errors && rm -f _errors.c _errors _error.grep _signal.grep _error.out
