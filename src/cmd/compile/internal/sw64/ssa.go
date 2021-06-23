@@ -84,7 +84,9 @@ func ssaGenValue(s *gc.SSAGenState, v *ssa.Value) {
 		p.From.Reg = r
 
 		gc.AddrAuto(&p.To, v)
-	case ssa.OpSW64CALLstatic, ssa.OpSW64CALLclosure, ssa.OpSW64CALLinter:
+	case ssa.OpSW64CALLstatic:
+		s.Call(v)
+	case ssa.OpSW64CALLclosure, ssa.OpSW64CALLinter:
 		_, ok := v.Aux.(*obj.LSym)
 		if !ok && v.Args[0].Reg() != sw64.REG_R27 {
 			// TODO(snyh): remove this if we can restrict ACALL use R27 in ssa
