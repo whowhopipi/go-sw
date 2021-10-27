@@ -31,6 +31,9 @@ func targetName(pc uint64, name string, base int64) string {
 
 // Decode decodes the 4 bytes in src as a single instruction.
 func Decode(src []byte) (inst Inst, err error) {
+	if len(src) < 4 {
+		return Inst{}, nil
+	}
 	v := binary.LittleEndian.Uint32(src)
 	i := Inst{
 		Op:   ParseOPtable(v),
