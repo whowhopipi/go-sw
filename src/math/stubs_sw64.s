@@ -7,112 +7,112 @@
 #include "textflag.h"
 
 TEXT ·Asin(SB), NOFRAME|NOSPLIT, $0
-	BR	·asin(SB)
+	JMP	·asin(SB)
 
 TEXT ·Acos(SB), NOFRAME|NOSPLIT, $0
-	BR	·acos(SB)
+	JMP	·acos(SB)
 
 TEXT ·Asinh(SB), NOFRAME|NOSPLIT, $0
-	BR	·asinh(SB)
+	JMP	·asinh(SB)
 
 TEXT ·Acosh(SB), NOFRAME|NOSPLIT, $0
-	BR	·acosh(SB)
+	JMP	·acosh(SB)
 
 TEXT ·Atan2(SB), NOFRAME|NOSPLIT, $0
-	BR	·atan2(SB)
+	JMP	·atan2(SB)
 
 TEXT ·Atan(SB), NOFRAME|NOSPLIT, $0
-	BR	·atan(SB)
+	JMP	·atan(SB)
 
 TEXT ·Atanh(SB), NOFRAME|NOSPLIT, $0
-	BR	·atanh(SB)
+	JMP	·atanh(SB)
 
 TEXT ·Min(SB), NOFRAME|NOSPLIT, $0
-	BR	·min(SB)
+	JMP	·min(SB)
 
 TEXT ·Max(SB), NOFRAME|NOSPLIT, $0
-	BR	·max(SB)
+	JMP	·max(SB)
 
 TEXT ·Erf(SB), NOFRAME|NOSPLIT, $0
-	BR	·erf(SB)
+	JMP	·erf(SB)
 
 TEXT ·Erfc(SB), NOFRAME|NOSPLIT, $0
-	BR	·erfc(SB)
+	JMP	·erfc(SB)
 
 TEXT ·Exp2(SB), NOFRAME|NOSPLIT, $0
-	BR	·exp2(SB)
+	JMP	·exp2(SB)
 
 TEXT ·Expm1(SB), NOFRAME|NOSPLIT, $0
-	BR	·expm1(SB)
+	JMP	·expm1(SB)
 
 TEXT ·Exp(SB), NOFRAME|NOSPLIT, $0
-	BR	·exp(SB)
+	JMP	·exp(SB)
 
 TEXT ·Frexp(SB), NOFRAME|NOSPLIT, $0
-	BR	·frexp(SB)
+	JMP	·frexp(SB)
 
 TEXT ·Hypot(SB), NOFRAME|NOSPLIT, $0
-	BR	·hypot(SB)
+	JMP	·hypot(SB)
 
 TEXT ·Ldexp(SB), NOFRAME|NOSPLIT, $0
-	BR	·ldexp(SB)
+	JMP	·ldexp(SB)
 
 TEXT ·Log10(SB), NOFRAME|NOSPLIT, $0
-	BR	·log10(SB)
+	JMP	·log10(SB)
 
 TEXT ·Log2(SB), NOFRAME|NOSPLIT, $0
-	BR	·log2(SB)
+	JMP	·log2(SB)
 
 TEXT ·Log1p(SB), NOFRAME|NOSPLIT, $0
-	BR	·log1p(SB)
+	JMP	·log1p(SB)
 
 TEXT ·Log(SB), NOFRAME|NOSPLIT, $0
-	BR	·log(SB)
+	JMP	·log(SB)
 
 TEXT ·Mod(SB), NOFRAME|NOSPLIT, $0
-	BR	·mod(SB)
+	JMP	·mod(SB)
 
 TEXT ·Modf(SB), NOFRAME|NOSPLIT, $0
-	BR	·modf(SB)
+	JMP	·modf(SB)
 
 TEXT ·Remainder(SB), NOFRAME|NOSPLIT, $0
-	BR	·remainder(SB)
+	JMP	·remainder(SB)
 
 TEXT ·Sin(SB), NOFRAME|NOSPLIT, $0
-	BR	·sin(SB)
+	JMP	·sin(SB)
 
 TEXT ·Sinh(SB), NOFRAME|NOSPLIT, $0
-	BR	·sinh(SB)
+	JMP	·sinh(SB)
 
 TEXT ·Cos(SB), NOFRAME|NOSPLIT, $0
-	BR	·cos(SB)
+	JMP	·cos(SB)
 
 TEXT ·Cosh(SB), NOFRAME|NOSPLIT, $0
-	BR	·cosh(SB)
+	JMP	·cosh(SB)
 
 TEXT ·Tan(SB), NOFRAME|NOSPLIT, $0
-	BR	·tan(SB)
+	JMP	·tan(SB)
 
 TEXT ·Tanh(SB), NOFRAME|NOSPLIT, $0
-	BR	·tanh(SB)
+	JMP	·tanh(SB)
 
 TEXT ·Cbrt(SB), NOFRAME|NOSPLIT, $0
-	BR	·cbrt(SB)
+	JMP	·cbrt(SB)
 
 TEXT ·Pow(SB), NOFRAME|NOSPLIT, $0
-	BR	·pow(SB)
+	JMP	·pow(SB)
 
 TEXT ·IsOddInt(SB), NOFRAME|NOSPLIT, $0
-	BR	·isOddInt(SB)
+	JMP	·isOddInt(SB)
 
 TEXT ·Sqrt(SB), NOFRAME|NOSPLIT, $0
-	BR	·sqrt(SB)
+	JMP	·sqrt(SB)
 
 TEXT ·Floor(SB), NOFRAME|NOSPLIT, $0
-	BR	·floor(SB)
+	JMP	·floor(SB)
 
 TEXT ·Ceil(SB), NOFRAME|NOSPLIT, $0
-	BR	·ceil(SB)
+	JMP	·ceil(SB)
 
 TEXT ·Trunc(SB), NOFRAME|NOSPLIT, $0
-	BR	·trunc(SB)
+	JMP	·trunc(SB)

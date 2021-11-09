@@ -665,6 +665,8 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 }
 
 func progedit(ctxt *obj.Link, p *obj.Prog, newprog obj.ProgAlloc) {
+	c := ctxt77{ctxt: ctxt, newprog: newprog}
+
 	p.From.Class = 0
 	p.To.Class = 0
 	switch p.As {
@@ -748,6 +750,139 @@ func progedit(ctxt *obj.Link, p *obj.Prog, newprog obj.ProgAlloc) {
 		p.From.Reg = REGZERO
 		p.From.Type = obj.TYPE_REG
 	}
+
+	// use in plugin mode or share mode
+	if c.ctxt.Flag_dynlink {
+		c.rewriteToUseGot(p)
+	}
+}
+
+// Rewrite p, if necessary, to access global data via the global offset table.
+func (c *ctxt77) rewriteToUseGot(p *obj.Prog) {
+	if p.As == obj.ADUFFCOPY || p.As == obj.ADUFFZERO {
+		//     ADUFFxxx $offset
+		// becomes
+		//     MOVD runtime.duffxxx@GOT, REGTMP
+		//     LDI $offset, REGTMP
+		//     LDI LR, REGTMP
+		//     CALL LR
+		var sym *obj.LSym
+		if p.As == obj.ADUFFZERO {
+			sym = c.ctxt.Lookup("runtime.duffzero")
+		} else {
+			sym = c.ctxt.Lookup("runtime.duffcopy")
+		}
+		offset := p.To.Offset
+		p.As = AMOVD
+		p.From.Type = obj.TYPE_MEM
+		p.From.Name = obj.NAME_GOTREF
+		p.From.Sym = sym
+		p.To.Type = obj.TYPE_REG
+		p.To.Reg = REGTMP
+		p.To.Name = obj.NAME_NONE
+		p.To.Offset = 0
+		p.To.Sym = nil
+
+		p1 := obj.Appendp(p, c.newprog)
+		p1.As = ALDI
+		p1.From.Type = obj.TYPE_REG
+		p1.From.Reg = REGTMP
+		p1.SetFrom3(obj.Addr{Type: obj.TYPE_CONST, Offset: offset})
+		p1.To.Type = obj.TYPE_REG
+		p1.To.Reg = REGTMP
+
+		p2 := obj.Appendp(p, c.newprog)
+		p2.As = ALDI
+		p2.From.Type = obj.TYPE_REG
+		p2.From.Reg = REG_R27
+		p2.To.Type = obj.TYPE_REG
+		p2.To.Reg = REGTMP
+
+		p3 := obj.Appendp(p1, c.newprog)
+		p3.As = obj.ACALL
+		p3.To.Type = obj.TYPE_REG
+		p3.To.Reg = REG_R27
+	}
+
+	// We only care about global data: NAME_EXTERN means a global
+	// symbol in the Go sense, and p.Sym.Local is true for a few
+	// internally defined symbols.
+	if p.To.Type == obj.TYPE_ADDR && p.To.Name == obj.NAME_EXTERN && !p.To.Sym.Local() {
+		// SYMADDR $sym, Rx becomes SYMADDR sym@GOT, Rx
+		// SYMADDR $sym+<off>, Rx becomes SYMADDR sym@GOT, Rx; LDI <off>, Rx
+		if p.As != ASYMADDR {
+			c.ctxt.Diag("do not know how to handle symbol not symaddr in %v with -dynlink", p)
+		}
+		if p.From.Type != obj.TYPE_REG {
+			c.ctxt.Diag("do not know how to handle symbol address insn to non-register in %v with -dynlink", p)
+		}
+		p.To.Type = obj.TYPE_MEM
+		p.To.Name = obj.NAME_GOTREF
+		if p.From.Offset != 0 {
+			q := obj.Appendp(p, c.newprog)
+			q.As = ALDI
+			q.From = p.To
+			p.SetFrom3(obj.Addr{Type: obj.TYPE_CONST, Offset: p.From.Offset}) //zxw new change
+			q.To = p.To
+		}
+	}
+	//	if p.GetFrom3() != nil && p.GetFrom3().Name == obj.NAME_EXTERN {
+	//		c.ctxt.Diag("don't know how to handle %v with -dynlink", p)
+	//	}
+
+	var source *obj.Addr
+	// LDx Ry, sym becomes LDL REGTMP, sym@GOT; LDx Ry, (REGTMP)
+	// STx Ry, sym becomes LDL REGTMP, sym@GOT; STx Ry, (REGTMP)
+	// An addition may be inserted between the two MOVs if there is an offset.
+	if p.From.Name == obj.NAME_EXTERN && !p.From.Sym.Local() {
+		if p.To.Name == obj.NAME_EXTERN && !p.To.Sym.Local() {
+			c.ctxt.Diag("cannot handle NAME_EXTERN on both sides in %v with -dynlink", p)
+		}
+		source = &p.From
+	} else if p.To.Name == obj.NAME_EXTERN && !p.To.Sym.Local() {
+		source = &p.To
+	} else {
+		return
+	}
+	if p.As == obj.ATEXT || p.As == obj.AFUNCDATA || p.As == obj.ACALL || p.As == obj.ARET || p.As == obj.AJMP {
+		return
+	}
+	if source.Sym.Type == objabi.STLSBSS {
+		return
+	}
+	if source.Type != obj.TYPE_MEM {
+		c.ctxt.Diag("don't know how to handle %v with -dynlink", p)
+	}
+	p1 := obj.Appendp(p, c.newprog)
+	p2 := obj.Appendp(p1, c.newprog)
+	p1.As = AMOVD
+	p1.From.Type = obj.TYPE_MEM
+	p1.From.Sym = source.Sym
+	p1.From.Name = obj.NAME_GOTREF
+	p1.To.Type = obj.TYPE_REG
+	p1.To.Reg = REGTMP
+
+	var final obj.As
+	if p.As == ASYMADDR {
+		final = ALDI
+	} else {
+		final = p.As
+	}
+	p2.As = final
+	p2.From = p.From
+	p2.To = p.To
+	if p.From.Name == obj.NAME_EXTERN {
+		p2.From.Reg = REGTMP
+		p2.From.Name = obj.NAME_NONE
+		p2.From.Sym = nil
+	} else if p.To.Name == obj.NAME_EXTERN {
+		p2.To.Reg = REGTMP
+		p2.To.Name = obj.NAME_NONE
+		p2.To.Sym = nil
+	} else {
+		return
+	}
+	obj.Nopout(p)
 }
 
 var LinkSW64 = obj.LinkArch{

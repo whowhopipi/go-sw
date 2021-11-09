@@ -270,6 +270,10 @@ const (
 	/* The low 16 bits of the displacement from GP to the target.  */
 	R_SW64_GPRELLOW
 
+  /* Load address form GP to the target */
+  R_SW64_LITERAL_GOT
+  R_SW64_LITERAL
+
 	// R_WASMIMPORT resolves to the index of the WebAssembly function import.
 	R_WASMIMPORT
 

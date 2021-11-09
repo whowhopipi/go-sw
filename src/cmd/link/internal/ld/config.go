@@ -96,7 +96,7 @@ func (mode *BuildMode) Set(s string) error {
 		switch objabi.GOOS {
 		case "linux":
 			switch objabi.GOARCH {
-			case "386", "amd64", "arm", "arm64", "s390x", "ppc64le":
+			case "386", "amd64", "arm", "arm64", "s390x", "ppc64le", "sw64":
 			default:
 				return badmode()
 			}

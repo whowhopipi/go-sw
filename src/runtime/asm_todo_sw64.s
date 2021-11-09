@@ -74,4 +74,4 @@ TODO(strings·countByte, todo_strings_countByte, "s·cntByt")
 TODO(runtime·countByte, todo_countbyte, "cntByt")
 
 // This is called from .init_array and follows the platform, not Go, ABI.
-TODO(·addmoduledata, todo_addmoduledata, "addMD")
+//TODO(·addmoduledata, todo_addmoduledata, "addMD")

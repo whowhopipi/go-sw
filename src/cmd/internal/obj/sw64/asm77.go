@@ -143,6 +143,9 @@ var optab = []Optab{
 	{AFMAS, C_FREG, C_FREG, C_FREG, C_FREG, 8, 4, 0, 0},
 	{ASELEQ, C_RREG, C_RREG, C_RREG, C_RREG, 8, 4, 0, 0},
 
+	{AMOVD, C_GOTADDR, C_NONE, C_NONE, C_RREG, 25, 4, 0, 0},
+	{ASYMADDR, C_RREG, C_NONE, C_NONE, C_GOTADDR, 26, 4, 0, 0},
+
 	{ALDGP, C_RREG, C_NONE, C_NONE, C_RREG, 20, 16, 0, 0},
 	{ANOOP, C_NONE, C_NONE, C_NONE, C_NONE, 11, 4, 0, 0},
 	{obj.AUNDEF, C_NONE, C_NONE, C_NONE, C_NONE, 18, 4, 0, 0},
@@ -402,6 +405,9 @@ func (c *ctxt77) aclass(a *obj.Addr) int {
 	case obj.TYPE_MEM,
 		obj.TYPE_ADDR:
 		switch a.Name {
+		case obj.NAME_GOTREF:
+			return C_GOTADDR
+
 		case obj.NAME_EXTERN, obj.NAME_STATIC:
 			if a.Sym.Type == objabi.STLSBSS {
 				c.ctxt.Diag("taking address of TLS variable is not supported")
@@ -414,6 +420,7 @@ func (c *ctxt77) aclass(a *obj.Addr) int {
 			if a.Offset > math.MaxInt16 || -a.Offset > math.MaxInt16 {
 				return C_LAUTO
 			}
+
 		case obj.NAME_NONE:
 			if isint16(a.Offset) {
 				return C_SOREG
@@ -800,10 +807,10 @@ func buildop(ctxt *obj.Link) {
 			obj.AUNDEF,
 			obj.ARET,
 			ANOOP,
-			AWORD:
+			AWORD,
+			AMOVD:
 			break
 		}
-
 	}
 
 }
@@ -975,6 +982,7 @@ func (c *ctxt77) asmout(p *obj.Prog, o *Optab, out []uint32) {
 		sym := p.To.Sym
 		r := getRegister(p.From.Reg)
 		as := p.As
+
 		if as == ASYMADDR {
 			as = ALDI
 		}
@@ -982,6 +990,7 @@ func (c *ctxt77) asmout(p *obj.Prog, o *Optab, out []uint32) {
 		addrel(c.cursym, int32(p.Pc), p.To.Offset, sym, objabi.R_SW64_GPRELHIGH)
 		o2 = OP_MEMORY(c.oprrr(as), r, r, 0) // ldx  r, sym_lo(r)
 		addrel(c.cursym, int32(p.Pc+4), p.To.Offset, sym, objabi.R_SW64_GPRELLOW)
+
 	case 13: /*buildStore*/
 		sym := p.To.Sym
 
@@ -1241,6 +1250,16 @@ func (c *ctxt77) asmout(p *obj.Prog, o *Optab, out []uint32) {
 		addrel(c.cursym, int32(p.Pc+4), p.To.Offset, sym, objabi.R_SW64_GPRELLOW)
 		o3 = OP_MEMORY(c.oprrr(obj.AJMP), REGLINK&31, pv, 0) //CALL/JMP R, (R27)
 		addrel(c.cursym, int32(p.Pc+8), p.To.Offset, sym, objabi.R_SW64_HINT)
+	case 25: /*MOVD sym@GOT */
+		//			o1 = OP_MEMORY(c.oprrr(ALDIH), r, REGSB&31, 0) // ldih r, sym(gp)
+		//			addrel(c.cursym, int32(p.Pc), p.To.Offset, 0, objabi.R_SW64_LITERAL_GOT)
+		o1 = OP_MEMORY(c.oprrr(ALDL), REGTMP, REGSB&31, 0) // ldx  r, sym_lo(r)
+		addrel(c.cursym, int32(p.Pc), p.From.Offset, p.From.Sym, objabi.R_SW64_LITERAL)
+	case 26: /*SYMADDR Rx, sym@GOT */
+		//			o1 = OP_MEMORY(c.oprrr(ALDIH), r, REGSB&31, 0) // ldih r, sym(gp)
+		//			addrel(c.cursym, int32(p.Pc), p.To.Offset, 0, objabi.R_SW64_LITERAL_GOT)
+		o1 = OP_MEMORY(c.oprrr(ALDL), p.From.Reg, REGSB&31, 0) // ldx  r, sym_lo(r)
+		addrel(c.cursym, int32(p.Pc), p.To.Offset, p.To.Sym, objabi.R_SW64_LITERAL)
 	}
 	out[0] = o1
 	out[1] = o2
