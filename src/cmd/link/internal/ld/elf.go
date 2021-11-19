@@ -788,7 +788,7 @@ func elfdynhash(ctxt *Link) {
 	}
 
 	// s390x (ELF64) hash table entries are 8 bytes
-	if ctxt.Arch.Family == sys.S390X {
+	if ctxt.Arch.Family == sys.S390X || ctxt.Arch.Family == sys.SW64 {
 		s.AddUint64(ctxt.Arch, uint64(nbucket))
 		s.AddUint64(ctxt.Arch, uint64(nsym))
 		for i := 0; i < nbucket; i++ {
@@ -1365,7 +1365,7 @@ func (ctxt *Link) doelf() {
 		dynamic := ldr.CreateSymForUpdate(".dynamic", 0)
 		dynamic.SetType(sym.SELFSECT) // writable
 
-		if ctxt.IsS390X() {
+		if ctxt.IsS390X() || ctxt.IsSW64() {
 			// S390X uses .got instead of .got.plt
 			gotplt = got
 		}
@@ -1410,6 +1410,10 @@ func (ctxt *Link) doelf() {
 			Elfwritedynent(ctxt.Arch, dynamic, elf.DT_PPC64_OPT, 0)
 		}
 
+		if ctxt.IsSW64() {
+			// sw64 use DT_LOPROC to mark plt is read only
+			elfwritedynentsym(ctxt, dynamic, elf.DT_LOPROC, plt.Sym())
+		}
 		// Solaris dynamic linker can't handle an empty .rela.plt if
 		// DT_JMPREL is emitted so we have to defer generation of elf.DT_PLTREL,
 		// DT_PLTRELSZ, and elf.DT_JMPREL dynamic entries until after we know the
@@ -1814,7 +1818,7 @@ func asmbElf(ctxt *Link) {
 		sh = elfshname(".plt")
 		sh.Type = uint32(elf.SHT_PROGBITS)
 		sh.Flags = uint64(elf.SHF_ALLOC + elf.SHF_EXECINSTR)
-		if elf.Machine(eh.Machine) == elf.EM_X86_64 {
+		if elf.Machine(eh.Machine) == elf.EM_X86_64 || elf.Machine(eh.Machine) == elf.EM_SW64 {
 			sh.Entsize = 16
 		} else if elf.Machine(eh.Machine) == elf.EM_S390 {
 			sh.Entsize = 32

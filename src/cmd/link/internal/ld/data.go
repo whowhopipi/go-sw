@@ -533,8 +533,7 @@ func (st *relocSymState) relocsym(s loader.Sym, P []byte) {
 				Hi := uint16(o >> 16)
 				Lo := uint16(o)
 				target.Arch.ByteOrder.PutUint16(P[off:], Hi)
-				target.Arch.ByteOrder.PutUint16(P[off+4:], Lo)
-
+				target.Arch.ByteOrder.PutUint16(P[int64(off)+4:], Lo)
 			} else {
 				target.Arch.ByteOrder.PutUint32(P[off:], uint32(o))
 			}

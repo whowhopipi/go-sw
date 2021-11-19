@@ -807,6 +807,7 @@ func (c *ctxt77) rewriteToUseGot(p *obj.Prog) {
 	// We only care about global data: NAME_EXTERN means a global
 	// symbol in the Go sense, and p.Sym.Local is true for a few
 	// internally defined symbols.
+
 	if p.To.Type == obj.TYPE_ADDR && p.To.Name == obj.NAME_EXTERN && !p.To.Sym.Local() {
 		// SYMADDR $sym, Rx becomes SYMADDR sym@GOT, Rx
 		// SYMADDR $sym+<off>, Rx becomes SYMADDR sym@GOT, Rx; LDI <off>, Rx
@@ -822,7 +823,7 @@ func (c *ctxt77) rewriteToUseGot(p *obj.Prog) {
 			q := obj.Appendp(p, c.newprog)
 			q.As = ALDI
 			q.From = p.To
-			p.SetFrom3(obj.Addr{Type: obj.TYPE_CONST, Offset: p.From.Offset}) //zxw new change
+			p.SetFrom3(obj.Addr{Type: obj.TYPE_CONST, Offset: p.From.Offset})
 			q.To = p.To
 		}
 	}
@@ -844,9 +845,42 @@ func (c *ctxt77) rewriteToUseGot(p *obj.Prog) {
 	} else {
 		return
 	}
+	// Simple symbol relocation no need places in got table
+	// TODO: should we rewrite function call ?
+	// Not as other arch, sw64 core3 must use CALL (REG) to lower all function call
+	// CALL symbol(SB) will be rewrite as
+	// LDIH Rx, sym@hi(GP), LDI Rx, sym@lo(GP), CALL (Rx)
+	// so CALL reloc must be rewrite here
+	/* if p.As == obj.ACALL && p.To.Sym != nil {
+		//println("CALLing function , sym is:", p.To.Sym.Name, "Is it local?:", p.To.Sym.Local())
+		p1 := obj.Appendp(p, c.newprog)
+		p2 := obj.Appendp(p1, c.newprog)
+		p3 := obj.Appendp(p2, c.newprog)
+		p1.As = AMOVD
+		p1.From.Type = obj.TYPE_MEM
+		p1.From.Sym = source.Sym
+		p1.From.Name = obj.NAME_GOTREF
+		p1.To.Type = obj.TYPE_REG
+		p1.To.Reg = REGTMP
+
+		p2.As = ALDI
+		p2.From.Type = obj.TYPE_REG
+		p2.From.Reg = REG_R27
+		p2.To.Type = obj.TYPE_REG
+		p2.To.Reg = REGTMP
+
+		p3.As = obj.ACALL
+		p3.From = p.From
+		p3.To = p.To
+		p3.To.Reg = REG_R27
+		p3.To.Name = obj.NAME_NONE
+		p3.To.Sym = nil
+		obj.Nopout(p)
+		return
+	} */
 	if p.As == obj.ATEXT || p.As == obj.AFUNCDATA || p.As == obj.ACALL || p.As == obj.ARET || p.As == obj.AJMP {
 		return
-	}
+	} // so as tls
 	if source.Sym.Type == objabi.STLSBSS {
 		return
 	}
@@ -862,13 +896,7 @@ func (c *ctxt77) rewriteToUseGot(p *obj.Prog) {
 	p1.To.Type = obj.TYPE_REG
 	p1.To.Reg = REGTMP
 
-	var final obj.As
-	if p.As == ASYMADDR {
-		final = ALDI
-	} else {
-		final = p.As
-	}
-	p2.As = final
+	p2.As = p.As
 	p2.From = p.From
 	p2.To = p.To
 	if p.From.Name == obj.NAME_EXTERN {
