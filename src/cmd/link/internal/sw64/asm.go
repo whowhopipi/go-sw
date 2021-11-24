@@ -14,6 +14,7 @@ import (
 )
 
 var pltHeaderSize int64
+var internalLinkingCgo bool = false
 
 func gentext(ctxt *ld.Link, ldr *loader.Loader) {
 	initfunc, addmoduledata := ld.PrepareAddmoduledata(ctxt)
@@ -177,7 +178,7 @@ func adddynrel(target *ld.Target, ldr *loader.Loader, syms *ld.ArchSyms, s loade
 		if targType == 0 || targType == sym.SXREF {
 			ldr.Errorf(s, "unknown symbol %s", ldr.SymName(targ))
 		}
-		rel := objabi.R_SW64_GPRELHIGH
+		var rel objabi.RelocType
 		if r.Type() == objabi.ElfRelocOffset+objabi.RelocType(elf.R_SW64_GPRELHIGH) {
 			rel = objabi.R_SW64_GPRELHIGH
 		} else {
@@ -326,6 +327,7 @@ func adddynrel(target *ld.Target, ldr *loader.Loader, syms *ld.ArchSyms, s loade
 }
 
 func elfsetupplt(ctxt *ld.Link, plt, gotplt *loader.SymbolBuilder, dynamic loader.Sym) {
+	internalLinkingCgo = true
 	if plt.Size() == 0 {
 		// TODO: this is a little different with gnu pltHeader
 
@@ -333,16 +335,15 @@ func elfsetupplt(ctxt *ld.Link, plt, gotplt *loader.SymbolBuilder, dynamic loade
 		// subl  r27,r28,r25
 		plt.AddUint32(ctxt.Arch, 0x437c0139)
 
-		// subl  r25,0x4,r25
-		//plt.AddUint32(ctxt.Arch, 0x4b208139)
-		plt.AddUint32(ctxt.Arch, 0x43ff075f)
+		// set .got to r28
+		// ldi r28, 17(r28)
+		plt.AddUint32(ctxt.Arch, 0xfb9d8001)
 
 		// s4subl r25,r25,r25
 		plt.AddUint32(ctxt.Arch, 0x43390179)
 
-		// set .got to r28
-		// mov r29,r28
-		plt.AddUint32(ctxt.Arch, 0x43fd075c)
+		// ldi r28, 32767(r28)
+		plt.AddUint32(ctxt.Arch, 0xfb9cffef)
 
 		// load resolver to jump target
 		// ldl r27,0(r28)
@@ -445,7 +446,12 @@ func archreloc(target *ld.Target, ldr *loader.Loader, syms *ld.ArchSyms, r loade
 	case objabi.R_SW64_GPDISP:
 		pc := ldr.SymValue(rs) + int64(r.Off())
 		base := uint32(val) & 0xffff0000
-		hi, lo := gpdispAddrDyn(pc, ldr, syms)
+		var hi, lo int16
+		if internalLinkingCgo {
+			hi, lo = gpdispAddrDyn(pc, ldr, syms)
+		} else {
+			hi, lo = gpdispAddr(pc)
+		}
 
 		if base != uint32(val) {
 			log.Fatalf("The R_SW64_GPDISP %v has been broken in %v.", r, s)
@@ -470,13 +476,18 @@ func archreloc(target *ld.Target, ldr *loader.Loader, syms *ld.ArchSyms, r loade
 		base := uint32(val) & 0xffff0000
 		v := ldr.SymAddr(rs) + int64(2*target.Arch.PtrSize) + r.Add()
 		if base != uint32(val) {
-			log.Fatalf("The R_SW64_TPRELLO/HI %v has been broken in %v.", r, s)
+			log.Fatalf("The R_SW64_GOTTPREL %v has been broken in %v.", r, s)
 		}
 		val := int64(base + uint32(uint16(v)))
 		return val, noExtReloc, isOk
 
 	case objabi.R_SW64_GPRELLOW, objabi.R_SW64_GPRELHIGH:
-		hi, lo := splitGPRelAddrDyn(ldr, r, syms)
+		var hi, lo int16
+		if internalLinkingCgo {
+			hi, lo = splitGPRelAddrDyn(ldr, r, syms)
+		} else {
+			hi, lo = splitGPRelAddr(ldr, r)
+		}
 		base := uint32(val) & 0xffff0000
 		if base != uint32(val) {
 			log.Fatalf("The R_SW64_GPRELxx %v has been broken in %v.", ldr.SymName(s), r, val, base)
@@ -510,9 +521,8 @@ func archreloc(target *ld.Target, ldr *loader.Loader, syms *ld.ArchSyms, r loade
 		return val, noExtReloc, isOk
 	case objabi.R_SW64_LITERAL_GOT, objabi.R_SW64_LITERAL:
 		base := uint32(val) & 0xffff0000
-		//off := ldr.SymValue(rs) + int64(r.Add()) - (ldr.SymValue(s) + int64(r.Off())  &^ 0xfff) - gpDynmic(ldr, syms)
 		//TODO: As we process off set in adddynrel, we try doing this
-		off := int64(r.Add()) - 8
+		off := int64(r.Add()) - 8 - 32784
 		if off > 32768 {
 			log.Fatalf("off is too big, we can't handle it")
 		}
@@ -542,7 +552,7 @@ func gpAddr() int64 {
 }
 
 func gpDynmic(ldr *loader.Loader, syms *ld.ArchSyms) int64 {
-	return ldr.SymValue(syms.GOT)
+	return ldr.SymValue(syms.GOT) + 32784
 }
 
 func gpdispAddrDyn(pc int64, ldr *loader.Loader, syms *ld.ArchSyms) (hi int16, lo int16) {
