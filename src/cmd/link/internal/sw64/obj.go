@@ -21,6 +21,7 @@ func Init() (*sys.Arch, ld.Arch) {
 		Dwarfreglr: dwarfRegLR,
 
 		Archinit:         archinit,
+		Adddynrel:        adddynrel,
 		Archreloc:        archreloc,
 		Archrelocvariant: archrelocvariant,
 		Extreloc:         extreloc,

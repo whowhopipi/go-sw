@@ -33,17 +33,17 @@ GLOBL	todo_str2(SB), NOPTR, $8
 	\
 	TEXT FN(SB), NOSPLIT, $8-0 \
 	LDI	R16, $2 \
-	SYMADDR	R17, todo_str(SB) \
+	SYMADDR	R17, $todo_str(SB) \
 	LDI	R18, $48 \
 	SYSCALL(SYS_write) \
 	\
 	LDI	R16, $2 \
-	SYMADDR	R17, dstr(SB) \
+	SYMADDR	R17, $dstr(SB) \
 	LDI	R18, $8 \
 	SYSCALL(SYS_write) \
 	\
 	LDI	R16, $2 \
-	SYMADDR	R17, todo_str2(SB) \
+	SYMADDR	R17, $todo_str2(SB) \
 	LDI	R18, $8 \
 	SYSCALL(SYS_write) \
 	\
@@ -72,6 +72,3 @@ TODO(strings·countByte, todo_strings_countByte, "s·cntByt")
 //   R8: address to put result
 // This requires the POPCNT instruction
 TODO(runtime·countByte, todo_countbyte, "cntByt")
-
-// This is called from .init_array and follows the platform, not Go, ABI.
-TODO(·addmoduledata, todo_addmoduledata, "addMD")

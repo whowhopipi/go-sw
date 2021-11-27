@@ -613,6 +613,8 @@ func (s *regAllocState) init(f *Func) {
 			// nothing to do
 		case "arm64":
 			// nothing to do?
+		case "sw64":
+			// nothing to do?
 		case "386":
 			// nothing to do.
 			// Note that for Flag_shared (position independent code)

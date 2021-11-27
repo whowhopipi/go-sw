@@ -373,6 +373,13 @@ TEXT runtime·goexit(SB), NOFRAME|NOSPLIT|TOPFRAME, $0-0
 	JMP	runtime·goexit1(SB)
 	LDI	ZERO, $0
 
+// This is called from .init_array and follows the platform, not Go, ABI
+TEXT runtime·addmoduledata(SB),NOSPLIT,$0-0
+  LDL  R1, runtime·lastmoduledatap(SB)
+  STL  R0, moduledata_next(R1) // local.moduledata passed to R0
+  STL  R0, runtime·lastmoduledatap(SB)
+  RET
+
 // void gogo(Gobuf*)
 // restore state from Gobuf; longjmp
 TEXT runtime·gogo(SB), NOSPLIT, $0-8

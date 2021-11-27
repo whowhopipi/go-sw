@@ -21,6 +21,7 @@ var cnames77 = []string{
 	"SOREG",
 	"LOREG",
 	"SBRA",
+	"C_GOTADDR",
 	"GOK",
 	"C_TLS_LE",
 	"C_TLS_IE",

@@ -141,22 +141,23 @@ const (
 )
 
 const (
-	C_NONE  = iota
-	C_RREG  // integer register
-	C_FREG  // float-point register
-	C_REG   // any register
-	C_SUCON // integer constant not greater than 0xff
-	C_MCON  // integer constant [-0x8000,0x7fff]
-	C_LCON  // integer constant without restriction
-	C_FCON  // float-point constant without restriction
-	C_LEXT  // external symbol
-	C_ADDR  // all symbol
-	C_SAUTO // (a.NAME == NAME_PARAM || a.NAME == NAME_AUTO) && offset is [-0x7fff, 0x7fff]
-	C_LAUTO // a.NAME == NAME_PARAM || a.NAME == NAME_AUTO
-	C_ZOREG // a.NAME == NAME_NONE && offset is 0
-	C_SOREG // (a.NAME == NAME_NONE) && offset is [-0x7fff, 0x7fff]
-	C_LOREG // a.NAME == NAME_NONE
-	C_SBRA  // a.NAME == NAME_NONE && offset is 0
+	C_NONE    = iota
+	C_RREG    // integer register
+	C_FREG    // float-point register
+	C_REG     // any register
+	C_SUCON   // integer constant not greater than 0xff
+	C_MCON    // integer constant [-0x8000,0x7fff]
+	C_LCON    // integer constant without restriction
+	C_FCON    // float-point constant without restriction
+	C_LEXT    // external symbol
+	C_ADDR    // all symbol
+	C_SAUTO   // (a.NAME == NAME_PARAM || a.NAME == NAME_AUTO) && offset is [-0x7fff, 0x7fff]
+	C_LAUTO   // a.NAME == NAME_PARAM || a.NAME == NAME_AUTO
+	C_ZOREG   // a.NAME == NAME_NONE && offset is 0
+	C_SOREG   // (a.NAME == NAME_NONE) && offset is [-0x7fff, 0x7fff]
+	C_LOREG   // a.NAME == NAME_NONE
+	C_SBRA    // a.NAME == NAME_NONE && offset is 0
+	C_GOTADDR // The GOT slot for a symbol in -dynlink mode
 	C_GOK
 	C_TLS_LE
 	C_TLS_IE
