@@ -59,7 +59,7 @@ TEXT runtime·exitThread(SB), NOFRAME|NOSPLIT, $0-8
 	LDI	R16, $0
 	SYSCALL(SYS_exit)
 	JMP	0(PC)
-//zxw new change
+
 // func write(fd uintptr, p unsafe.Pointer, n int32) int32
 TEXT runtime·write1(SB), NOSPLIT, $0-28
 	LDL	R16, fd+0(FP)
@@ -164,7 +164,7 @@ TEXT runtime·sbrk0(SB), NOSPLIT, $0-8
 	LDI	R16, $0
 	SYSCALL(SYS_brk)
 	BEQ	R19, ok
-	SUBL	ZERO, R0, R0 
+	SUBL	ZERO, R0, R0
 ok:
 	STL	R0, ret+0(FP)
 	RET
@@ -173,30 +173,23 @@ TEXT runtime·osyield(SB), NOFRAME|NOSPLIT, $0
 	SYSCALL(SYS_sched_yield)
 	RET
 
-//zxw new change
-/*TEXT runtime·nanotime1(SB), NOSPLIT, $16-8
-	LDI R16, $1 // CLOCK_MONOTONIC
-	LDI R17, 8(SP)
-	SYSCALL(SYS_clock_gettime)
-
-	LDL R0, 8(SP) //sec
-	LDL R1, 16(SP) //nsec
-
-	LDI R2, $1000000000
-	MULL R0, R2, R0
-	ADDL R0, R1, R0
-	STL R0, ret+0(FP)
-	RET
-*/
 TEXT runtime·nanotime1(SB), NOSPLIT, $16-8
 	LDI	R9, R30    // R9 is unchanged by C code
 	LDI	R1, R30
 
 	LDL	R10, g_m(g) // R10 = m
 
+  // Save the old values on stack and restore them on exit.
+  // so this function is reentrant.
+  LDL R16, m_vdsoPC(R10)
+  LDL R17, m_vdsoSP(R10)
+  STL R16, 8(R30)
+  STL R17, 16(R30)
+
+  LDL R16, $ret-8(FP)
 	// Set vdsoPC and vdsoSP for SIGPROF traceback.
 	STL	R26, m_vdsoPC(R10)
-	STL	R30, m_vdsoSP(R10)
+	STL R16, m_vdsoSP(R10)
 
 	LDL	R16, m_curg(R10)
 	LDI	R17, g
@@ -217,14 +210,41 @@ noswitch:
 	LDL	R27, runtime·vdsoClockgettimeSym(SB)
 	BEQ	R27, fallback
 
+	// Store g on gsignal's stack, so if we receive a signal
+	// during VDSO code we can find the g.
+	// If we don't have a signal stack, we won't receive signal,
+	// so don't bother saving g.
+	// When using cgo, we already saved g on TLS, also don't save
+	// g here.
+	// Also don't save g if we are already on the signal stack.
+	// We won't get a nested signal.
+	LDBU R11, runtime·iscgo(SB) //R11 doesn't change by C code
+	BNE R11, nosaveg
+	LDL R11, m_gsignal(R10)
+	BEQ R11, nosaveg
+
+	CMPEQ g, R11, R28
+	BNE R28, nosaveg
+	LDL R11, (g_stack+stack_lo)(R11)
+	STL g, (R11)
+
 	CALL	R26, (R27)
+  STL  R31, 0(R11) // clear g slot
 
 finish:
 	LDL	R0, 0(R30)   // sec
 	LDL	R17, 8(R30)  // nsec
 
 	LDI	R30, R9      // restore SP
-	STL	ZERO, m_vdsoSP(R10)  // clear vdsoSP
+  // Restore vdsoPC, vdsoSP
+  // We don't worry about being signaled between the two stores.
+  // If we are not in a signal handler, we'll restore vdsoSP to 0,
+  // and no one will care about vdsoPC. If we are in a signal handler,
+  // we cannot receive another signal.
+  LDL     R1, 16(R30)
+  STL     R1, m_vdsoSP(R10)
+  LDL     R1, 8(R30)
+  STL     R1, m_vdsoPC(R10)
 
 	// sec is in R3, nsec in R5
         // return nsec in R3
@@ -233,6 +253,10 @@ finish:
 	ADDL	R0, R17, R0
 	STL	R0, ret+0(FP)
 	RET
+
+nosaveg:
+	CALL	R26, (R27)
+	JMP finish
 
 fallback:
 	SYSCALL(SYS_clock_gettime)
@@ -254,28 +278,23 @@ TEXT runtime·usleep(SB),NOSPLIT,$16-4
 	SYSCALL(SYS_select)
 	RET
 
-//zxw new change
-/*
-//func walltime() (sec int64, nsec int32)
-TEXT runtime·walltime1(SB), NOSPLIT, $16-12
-    LDI R16, $0  // CLOCK_REALTIME
-    LDI R17, 8(SP) //struct timespec*
-    SYSCALL(SYS_clock_gettime)
-    LDL R0, 8(SP)
-    LDL R1, 16(SP)
-    STL R0, sec+0(FP)
-    STW R1, nsec+8(FP)
-    RET
-*/
 TEXT runtime·walltime1(SB), NOSPLIT, $16-12
 	LDI	R9, R30    // R9 is unchanged by C code
 	LDI	R1, R30
 
 	LDL	R10, g_m(g) // R10 = m
 
+  // Save the old values on stack and restore them on exit.
+  // so this function is reentrant.
+  LDL R16, m_vdsoPC(R10)
+  LDL R17, m_vdsoSP(R10)
+  STL R16, 8(R30)
+  STL R17, 16(R30)
+
+  LDL R16, $ret-8(FP)
 	// Set vdsoPC and vdsoSP for SIGPROF traceback.
 	STL	R26, m_vdsoPC(R10)
-	STL	R30, m_vdsoSP(R10)
+	STL R16, m_vdsoSP(R10)
 
 	LDL	R16, m_curg(R10)
 	LDI	R17, g
@@ -296,18 +315,49 @@ noswitch:
 	LDL	R27, runtime·vdsoClockgettimeSym(SB)
 	BEQ	R27, fallback
 
+	// Store g on gsignal's stack, so if we receive a signal
+	// during VDSO code we can find the g.
+	// If we don't have a signal stack, we won't receive signal,
+	// so don't bother saving g.
+	// When using cgo, we already saved g on TLS, also don't save
+	// g here.
+	// Also don't save g if we are already on the signal stack.
+	// We won't get a nested signal.
+	LDBU R11, runtime·iscgo(SB) //R11 doesn't change by C code
+	BNE R11, nosaveg
+	LDL R11, m_gsignal(R10)
+	BEQ R11, nosaveg
+
+	CMPEQ g, R11, R28
+	BNE R28, nosaveg
+	LDL R11, (g_stack+stack_lo)(R11)
+	STL g, (R11)
+
 	CALL	R26, (R27)
+  STL  R31, 0(R11) // clear g slot
 
 finish:
 	LDL	R0, 0(R30)   // sec
 	LDL	R17, 8(R30)  // nsec
 
 	LDI	R30, R9      // restore SP
-	STL	ZERO, m_vdsoSP(R10)  // clear vdsoSP
+  // Restore vdsoPC, vdsoSP
+  // We don't worry about being signaled between the two stores.
+  // If we are not in a signal handler, we'll restore vdsoSP to 0,
+  // and no one will care about vdsoPC. If we are in a signal handler,
+  // we cannot receive another signal.
+  LDL R1, 16(R30)
+  STL R1, m_vdsoSP(R10)
+  LDL R1, 8(R30)
+  STL R1, m_vdsoPC(R10)
 
 	STL	R0, sec+0(FP)
 	STW	R17, nsec+8(FP)
 	RET
+
+nosaveg:
+	CALL	R26, (R27)
+	JMP finish
 
 fallback:
 	SYSCALL(SYS_clock_gettime)
@@ -347,9 +397,9 @@ TEXT runtime·rt_sigaction(SB), NOFRAME|NOSPLIT, $0-36
 	LDL	R18, old+16(FP)
 	LDL	R19, size+24(FP)
 	SYMADDR	R20, glibc_sigreturn<>(SB)
-	
+
 	SYSCALL(SYS_rt_sigaction)
-	
+
 	BEQ	R19, ok
 	STW	R19, ret+32(FP)
 	RET
@@ -408,7 +458,7 @@ TEXT runtime·futex(SB), NOFRAME|NOSPLIT, $0-44
 	LDW	R21, val3+32(FP)
 	SYSCALL(SYS_futex)
 	BEQ	R19, ok
-	SUBL	ZERO, R0, R0 
+	SUBL	ZERO, R0, R0
 ok:
 	STW	R0, ret+40(FP)
 	RET
@@ -463,7 +513,7 @@ guard_ok:
 	LDL	R1, -8(SP)  // m
 	BEQ	R2, nog
 	BEQ	R1, nog
-	
+
 	SYSCALL(SYS_gettid)
 	STL	R0, m_procid(R1)
 
@@ -503,7 +553,7 @@ TEXT runtime·epollcreate(SB), NOFRAME|NOSPLIT, $0
 	LDW	R16, size+0(FP)
 	SYSCALL(SYS_epoll_create)
 	BEQ	R19, ok
-	SUBL	ZERO, R0, R0 
+	SUBL	ZERO, R0, R0
 ok:
 	STW	R0, ret+8(FP)
 	RET
@@ -513,7 +563,7 @@ TEXT runtime·epollcreate1(SB), NOFRAME|NOSPLIT, $0
 	LDW	R16, flags+0(FP)
 	SYSCALL(SYS_epoll_create1)
 	BEQ	R19, ok
-	SUBL	ZERO, R0, R0 
+	SUBL	ZERO, R0, R0
 ok:
 	STW	R0, ret+8(FP)
 	RET
@@ -526,7 +576,7 @@ TEXT runtime·epollctl(SB), NOFRAME|NOSPLIT, $0
 	LDL	R19, ev+16(FP)
 	SYSCALL(SYS_epoll_ctl)
 	BEQ	R19, ok
-	SUBL	ZERO, R0, R0 
+	SUBL	ZERO, R0, R0
 ok:
 	STL	R0, ret+24(FP)
 	RET
@@ -540,7 +590,7 @@ TEXT runtime·epollwait(SB), NOSPLIT|NOFRAME, $0
 	LDI	R20, ZERO
 	SYSCALL(SYS_epoll_pwait)
 	BEQ	R19, ok
-	SUBL	ZERO, R0, R0 
+	SUBL	ZERO, R0, R0
 ok:
 	STW	R0, ret+24(FP)
 	RET
@@ -561,14 +611,13 @@ TEXT runtime·setitimer(SB), NOFRAME|NOSPLIT, $0-24
 	SYSCALL(SYS_setitimer)
 	RET
 
-//zxw new add
 // func pipe() (r, w int32, errno int32)
 TEXT runtime·pipe(SB),NOSPLIT|NOFRAME,$0-12
 	LDI	R16, $r+0(FP)
 	LDI	R17, ZERO
 	SYSCALL(SYS_pipe2)
 	BEQ	R19, ok
-	SUBL	ZERO, R0, R0 
+	SUBL	ZERO, R0, R0
 ok:
 	STW	R0, errno+8(FP)
 	RET
@@ -579,7 +628,7 @@ TEXT runtime·pipe2(SB),NOSPLIT|NOFRAME,$0-20
 	LDW	R17, flags+0(FP)
 	SYSCALL(SYS_pipe2)
 	BEQ	R19, ok
-	SUBL	ZERO, R0, R0 
+	SUBL	ZERO, R0, R0
 ok:
 	STW	R0, errno+16(FP)
 	RET
