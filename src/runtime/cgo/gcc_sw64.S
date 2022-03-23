@@ -33,7 +33,7 @@ crosscall1:
 	.cfi_startproc
 	ldi	sp, -160(sp)
 	.cfi_def_cfa_offset	160
-	
+
 	stl	$26, 0(sp)
 	stl	$15, 56(sp)
 	stl	$29, 64(sp)
@@ -42,14 +42,14 @@ crosscall1:
 	mov	sp, $15
 	.cfi_def_cfa_register	15
 	.prologue	0
-	
+
 	stl	$9, 8(sp)
 	stl	$10, 16(sp)
 	stl	$11, 24(sp)
 	stl	$12, 32(sp)
 	stl	$13, 40(sp)
 	stl	$14, 48(sp)
-	
+
 	STD	$f2, 88 (sp)
 	STD	$f3, 96 (sp)
 	STD	$f4, 104(sp)
@@ -58,29 +58,29 @@ crosscall1:
 	STD	$f7, 128(sp)
 	STD	$f8, 136(sp)
 	STD	$f9, 144(sp)
-	
+
 	#a0=fn, a1=setg_gcc, a2=g
 	stl	a0, 72(sp)
-	
+
 	ldi	$27, 0(a1)
 	ldi	a0, 0(a2)
 	ldi	a1, 0(zero)
 	ldi	a2, 0(zero)
 	CALL	$26, ($27), 0  #call setg_gcc (clobbers A0 ?)
-	
+
 	ldl	$27, 72(sp)
 	ldi	a0, 0(zero)
 	ldi	a1, 0(zero)
 	ldi	a2, 0(zero)
 	CALL	$26, ($27), 0  #call fn
-	
+
 	ldl	$9, 8(sp)
 	ldl	$10, 16(sp)
 	ldl	$11, 24(sp)
 	ldl	$12, 32(sp)
 	ldl	$13, 40(sp)
 	ldl	$14, 48(sp)
-	
+
 	ldl	$15, 56(sp)
 	.cfi_restore	15
 
@@ -92,16 +92,16 @@ crosscall1:
 	LDD	$f7, 128(sp)
 	LDD	$f8, 136(sp)
 	LDD	$f9, 144(sp)
-	
+
 	ldl	$29, 64(sp)
-	
+
 	ldl	$26, 0(sp)
 	.cfi_restore	26
-	
+
 	ldi	sp, 160(sp)
 	.cfi_def_cfa	30, 0
-	
+
 	ret	$31,($26),1
 	.cfi_endproc
-	
+
 	.end	crosscall1

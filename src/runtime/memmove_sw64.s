@@ -17,15 +17,15 @@ TEXT runtime·memmove(SB), NOFRAME|NOSPLIT, $0-24
 check:
 	CMPULE	R0,R1,R4
 	BEQ	R4,backward
-	
+
 	ADDL	R0,R2,R6 // end pointer
-	
-	 // if the two pointers are not of same alignments, do byte copying
+
+	// if the two pointers are not of same alignments, do byte copying
 	SUBL	R0,R1,R4
 	AND	R4,$7,R4
 	BNE	R4, out
-	
-	 // if less than 8 bytes, do byte copying
+
+	// if less than 8 bytes, do byte copying
 	CMPULT	R2,$8,R4
 	BNE	R4,out
 	// do one byte at a time until 8-aligned
@@ -33,7 +33,7 @@ check:
 	BEQ	R5,words
 	LDBU	R3, (R1)
 	ADDL	R1, $1, R1
-	
+
 	STB	R3, (R0)
 	ADDL	R0,$1,R0
 	JMP	-6(PC)
@@ -45,7 +45,7 @@ words:
 	BNE	R8,out
 	LDL	R3,(R1)
 	ADDL	R1,$8,R1
-	
+
 	STL	R3,(R0)
 	ADDL	R0,$8,R0
 	JMP	-6(PC)
@@ -55,7 +55,7 @@ out:
 	BNE	R8,done
 	LDBU	R3, (R1)
 	ADDL	R1, $1, R1
-	
+
 	STB	R3, (R0)
 	ADDL	R0,$1,R0
 	JMP	-6(PC)
@@ -66,16 +66,16 @@ done:
 backward:
 	ADDL	R1,R2,R4 // from-end pointer
 	ADDL	R0,R2,R5  // to-end pointer
-	
+
 	// if the two pointers are not of same alignments, do byte copying
 	SUBL	R4,R5,R7
 	AND	R7,$7,R7
 	BNE	R7,out1
-	
-	 // if less than 8 bytes, do byte copying
+
+	// if less than 8 bytes, do byte copying
 	CMPULT	R2,$8,R7
 	BNE	R7,out1
-	
+
 	// do one byte at a time until 8-aligned
 	AND	R5,$7,R6
 	BEQ	R6,words1
@@ -88,7 +88,7 @@ backward:
 words1:
 	// do 8 bytes at a time if there is room
 	ADDL	R0,$7,R3
-	
+
 	CMPULE	R5,R3,R7
 	BNE	R7,out1
 	SUBL	R4,$8,R4

@@ -20,11 +20,11 @@ loop:
 	ADDL	R1, $1, R1
 	CMPEQ	R1, R2, R5
 	BNE	R5, notfound
-	
+
 	LDBU	R6, (R1)
 	CMPEQ	R6, R3, R6
 	BEQ	R6, loop
-	
+
 	SUBL	R1, R4, R1 // remove base
 	STL	R1, ret+32(FP)
 	RET
@@ -47,11 +47,11 @@ loop:
 	ADDL	R1, $1, R1
 	CMPEQ	R1, R2, R5
 	BNE	R5, notfound
-	
+
 	LDBU	R6, (R1)
 	CMPEQ	R6, R3, R6
 	BEQ	R6, loop
-	
+
 	SUBL	R1, R4, R1 // remove base
 	STL	R1, ret+24(FP)
 	RET

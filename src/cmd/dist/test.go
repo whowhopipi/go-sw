@@ -978,7 +978,7 @@ func (t *tester) supportedBuildmode(mode string) bool {
 		switch pair {
 		case "aix-ppc64",
 			"darwin-amd64", "darwin-arm64", "ios-arm64",
-			"linux-amd64", "linux-386", "linux-ppc64le", "linux-s390x",
+			"linux-amd64", "linux-386", "linux-ppc64le", "linux-s390x", "linux-sw64",
 			"freebsd-amd64",
 			"windows-amd64", "windows-386":
 			return true
@@ -1110,7 +1110,7 @@ func (t *tester) cgoTest(dt *distTest) error {
 		"android-arm", "android-arm64",
 		"dragonfly-amd64",
 		"freebsd-386", "freebsd-amd64", "freebsd-arm",
-		"linux-386", "linux-amd64", "linux-arm", "linux-arm64", "linux-ppc64le", "linux-riscv64", "linux-s390x",
+		"linux-386", "linux-amd64", "linux-arm", "linux-arm64", "linux-ppc64le", "linux-riscv64", "linux-s390x", "linux-sw64",
 		"netbsd-386", "netbsd-amd64",
 		"openbsd-386", "openbsd-amd64", "openbsd-arm", "openbsd-arm64", "openbsd-mips64":
 

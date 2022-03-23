@@ -18,10 +18,10 @@ TEXT runtime·memequal(SB),NOSPLIT,$0-25
 loop:
 	LDBU	R3, (R0)
 	LDBU	R4, (R1)
-	
+
 	CMPEQ	R3, R4, R3
 	BEQ	R3, ne
-	
+
 	ADDL	R0, $1, R0
 	ADDL	R1, $1, R1
 	SUBL	R2, $1, R2
@@ -44,7 +44,7 @@ TEXT runtime·memequal_varlen(SB),NOSPLIT,$40-17
 	STL	R1, 8(SP)
 	STL	R2, 16(SP)
 	STL	R3, 24(SP)
-	
+
 	CALL	runtime·memequal(SB)
 	LDBU	R1, 32(SP)
 	STB 	R1, ret+16(FP)
