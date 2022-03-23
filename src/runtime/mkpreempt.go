@@ -85,6 +85,7 @@ var arches = map[string]func(){
 	"ppc64x":  genPPC64,
 	"riscv64": genRISCV64,
 	"s390x":   genS390X,
+	"sw64":    genSW64,
 	"wasm":    genWasm,
 }
 var beLe = map[string]bool{"mips64x": true, "mipsx": true, "ppc64x": true}
@@ -556,6 +557,53 @@ func genS390X() {
 	p("TMLH R10, $(3<<12)")            // restore flags
 	p("MOVD -%d(R15), R10", l.stack+8) // load PC to REGTMP
 	p("JMP (R10)")
+}
+
+func genSW64() {
+	regsize := 8
+    r29 := "RSB"
+	// Add integer registers R0-R14, R16-R25, R27, R29(RSB)
+	// R31 (zero), R28 (REGTMP), R30 (SP), R15 (g), R26 (LR) are special,
+	// and not saved here.
+	var l = layout{sp: "SP", stack: regsize} // add slot to save PC of interrupted instruction (in LR)
+	for i := 0; i <= 27; i++ {
+		if i == 15 || i == 26 {
+			continue // R15 is g, R26 is LR, R28 is REGTMP
+		}
+		reg := fmt.Sprintf("R%d", i)
+		l.addSpecial(
+            "STL " + reg + ", %d(SP)",
+            "LDL " + reg + ", %d(SP)",
+            regsize)
+	}
+	l.addSpecial(
+        "STL " + r29 + ", %d(SP)",
+        "LDL " + r29 + ", %d(SP)",
+        regsize)
+
+	// Add floating point registers F0-F31.
+	var lfp = layout{sp: "SP", stack: l.stack}
+	for i := 0; i <= 31; i++ {
+		reg := fmt.Sprintf("F%d", i)
+		lfp.addSpecial(
+            "FSTD " + reg + ", %d(SP)",
+            "FLDD " + reg + ", %d(SP)",
+            regsize)
+	}
+	// allocate frame, save PC of interrupted instruction (in LR)
+	p("STL R26,-%d(SP)", lfp.stack)
+	p("LDI SP, -%d(SP)", lfp.stack)
+
+	l.save()
+	lfp.save()
+	p("CALL ·asyncPreempt2(SB)")
+	lfp.restore()
+	l.restore()
+
+    p("LDL R26, %d(SP)", lfp.stack)       // sigctxt.pushCall has pushed LR (at interrupt) on stack, restore it
+	p("LDL R28, 0(SP)")                   // load PC to REGTMP
+	p("LDI SP, %d(SP)", lfp.stack+regsize) // pop frame (including the space pushed by sigctxt.pushCall)
+	p("JMP (R28)")
 }
 
 func genWasm() {

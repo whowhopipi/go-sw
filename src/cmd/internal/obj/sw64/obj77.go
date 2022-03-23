@@ -344,6 +344,10 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 				autosize = 0
 			}
 
+			var manuallr *obj.Prog
+			var manualsp *obj.Prog
+			var preprog *obj.Prog
+
 			//convert virtual SP to hardware SP
 			//see also: https://bj.git.sndu.cn/xiabin/go-sw64/wikis/stack-frame-layout
 			for p := cursym.Func().Text; p != nil; p = p.Link {
@@ -358,6 +362,24 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 					p.To.Reg = REGSP
 					p.To.Offset += int64(autosize)
 					p.To.Sym = nil
+				}
+				if cursym.Attribute.NoFrame() && (manuallr == nil || manualsp == nil) {
+					switch p.As {
+					case ASTL:
+						if manuallr == nil && p.From.Reg == REGLINK && p.To.Reg == REGSP {
+							manuallr = p
+						} else {
+							preprog = p
+						}
+					case ALDI:
+						if manualsp == nil && p.From.Reg == REGSP && p.To.Reg == REGSP {
+							manualsp = p
+						} else {
+							preprog = p
+						}
+					default:
+						preprog = p
+					}
 				}
 			}
 
@@ -388,27 +410,38 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 				//zxw new add
 				q = c.ctxt.StartUnsafePoint(q, c.newprog)
 
-				// LDI SP, $-autosize(SP)
+				// STL RA, $-autosize(SP)
 				q = obj.Appendp(q, newprog)
-				q.As = ALDI
-				q.From.Type = obj.TYPE_REG
-				q.From.Reg = REGSP
-				q.To = obj.Addr{
-					Type:   obj.TYPE_ADDR,
-					Reg:    REGSP,
-					Offset: int64(-autosize),
-				}
-				// STL RA, $0(SP)
-				q = obj.Appendp(q, newprog)
-				q.Spadj = autosize
 				q.As = ASTL
 				q.From.Type = obj.TYPE_REG
 				q.From.Reg = REGLINK
 				q.To.Type = obj.TYPE_MEM
 				q.To.Reg = REGSP
+				q.To.Offset = int64(-autosize)
 
+				// LDI SP, $-autosize(SP)
+				q = obj.Appendp(q, newprog)
+				q.Spadj = autosize
+				q.As = ALDI
+				q.From.Type = obj.TYPE_REG
+				q.From.Reg = REGSP
+				q.To.Type = obj.TYPE_ADDR
+				q.To.Reg = REGSP
+				q.To.Offset = int64(-autosize)
 				//zxw new add
 				q = c.ctxt.EndUnsafePoint(q, c.newprog, -1)
+			} else if manuallr != nil && manualsp != nil {
+				if preprog.As == obj.AFUNCDATA && manuallr.Link == manualsp {
+					// This is a workaround for preempt_sw64.s
+					preprog.Link = manualsp.Link
+					q = c.ctxt.StartUnsafePoint(q, c.newprog)
+					q.Link = manuallr
+					q = q.Link
+					q.Link = manualsp
+					q = q.Link
+					q.Spadj = int32(-q.To.Offset)
+					q = c.ctxt.EndUnsafePoint(q, c.newprog, -1)
+				}
 			}
 			// snyh_TODO: #131
 			q = insertLDGP(q, newprog, REGZERO)
@@ -527,11 +560,9 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 				q.As = ALDI
 				q.From.Type = obj.TYPE_REG
 				q.From.Reg = REGSP
-				q.To = obj.Addr{
-					Type:   obj.TYPE_ADDR,
-					Reg:    REGSP,
-					Offset: int64(autosize),
-				}
+				q.To.Type = obj.TYPE_ADDR
+				q.To.Reg = REGSP
+				q.To.Offset = int64(autosize)
 				q.Spadj = -autosize
 
 				q = obj.Appendp(q, newprog)
@@ -553,23 +584,26 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 					// We can't use q = obj.Appendp(q, newprog),
 					// because the RET may be a jump target, and Appendp
 					// will change the pointer value of q
+					// STL RA, $(int64(autosize) - c.ctxt.FixedFrameSize())(SP)
 					q := p
-					q.As = ALDI
-					q.From.Type = obj.TYPE_REG
-					q.From.Reg = REGSP
-					q.To = obj.Addr{
-						Type:   obj.TYPE_ADDR,
-						Reg:    REGSP,
-						Offset: int64(autosize) - c.ctxt.FixedFrameSize(),
-					}
-					// STL RA, $0(SP)
-					q = obj.Appendp(q, newprog)
-					q.Spadj = autosize
 					q.As = ASTL
 					q.From.Type = obj.TYPE_REG
 					q.From.Reg = REGLINK
-					q.To.Type = obj.TYPE_MEM
+					q.To = obj.Addr{
+						Type:   obj.TYPE_MEM,
+						Reg:    REGSP,
+						Offset: -c.ctxt.FixedFrameSize(),
+					}
+
+					// LDI SP, $(int64(autosize) - c.ctxt.FixedFrameSize())(SP)
+					q = obj.Appendp(q, newprog)
+					q.As = ALDI
+					q.Spadj = autosize
+					q.From.Type = obj.TYPE_REG
+					q.From.Reg = REGSP
+					q.To.Type = obj.TYPE_ADDR
 					q.To.Reg = REGSP
+					q.To.Offset = -c.ctxt.FixedFrameSize()
 
 					q = obj.Appendp(q, newprog)
 					*q = *tmp
@@ -606,11 +640,9 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 					q1.As = ALDI
 					q1.From.Type = obj.TYPE_REG
 					q1.From.Reg = REGSP
-					q1.To = obj.Addr{
-						Type:   obj.TYPE_ADDR,
-						Reg:    REGSP,
-						Offset: int64(autosize),
-					}
+					q1.To.Type = obj.TYPE_ADDR
+					q1.To.Reg = REGSP
+					q1.To.Offset = int64(autosize)
 					q1.Spadj = -autosize
 				} else {
 					//LDI SP, $8(SP)
@@ -618,11 +650,9 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 					q1.As = ALDI
 					q1.From.Type = obj.TYPE_REG
 					q1.From.Reg = REGSP
-					q1.To = obj.Addr{
-						Type:   obj.TYPE_ADDR,
-						Reg:    REGSP,
-						Offset: int64(autosize) + c.ctxt.FixedFrameSize(),
-					}
+					q1.To.Type = obj.TYPE_ADDR
+					q1.To.Reg = REGSP
+					q1.To.Offset = int64(autosize) + c.ctxt.FixedFrameSize()
 					q1.Spadj = -autosize - int32(c.ctxt.FixedFrameSize())
 				}
 
@@ -754,6 +784,24 @@ func progedit(ctxt *obj.Link, p *obj.Prog, newprog obj.ProgAlloc) {
 	// use in plugin mode or share mode
 	if c.ctxt.Flag_dynlink {
 		c.rewriteToUseGot(p)
+	}
+	c.insertCrossModule(p)
+}
+
+func (c *ctxt77) insertCrossModule(p *obj.Prog) {
+	if p.As != obj.ACALL || p.To.Sym == nil {
+		return
+	}
+
+	if p.To.Sym.Name == "runtime.deferreturn" && p.Mark&CHANGED == 0 {
+		p1 := insertLDGP(p, c.newprog, REGZERO)
+		p1.Mark |= NOSCHED
+		p2 := obj.Appendp(p1, c.newprog)
+		p2.As = p.As
+		p2.To = p.To
+		p2.From = p.From
+		p2.Mark |= CHANGED
+		obj.Nopout(p)
 	}
 }
 

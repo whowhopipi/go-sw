@@ -379,6 +379,7 @@ const (
 	LOAD    = 1 << 5
 	FCMP    = 1 << 6
 	NOSCHED = 1 << 7
+	CHANGED = 1 << 9
 
 	NSCHED = 20
 )

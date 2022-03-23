@@ -17,7 +17,7 @@ TEXT _rt0_sw64_lib(SB), NOSPLIT, $0x50
 	// 1. SAVE R16, R17
 	STL	R16, _rt0_sw64_lib_argc<>(SB)
 	STL	R17, _rt0_sw64_lib_argv<>(SB)
-	
+
 	// 2. save C ABI registers
 	LDI	SP, $-64(SP)
 	STL	R9, 0*8(SP)
@@ -27,12 +27,12 @@ TEXT _rt0_sw64_lib(SB), NOSPLIT, $0x50
 	STL	R13, 4*8(SP)
 	STL	R14, 5*8(SP)
 	STL	R15, 6*8(SP)
-	
+
 	CALL	runtime·libpreinit(SB)
 	// 3. Create a new thread to finish Go runtime initialization.
 	LDL	R27, _cgo_sys_thread_create(SB)
 	BEQ	R27, nocgo
-	
+
 	SYMADDR	R16, $_rt0_sw64_lib_go(SB)
 	LDI	R17, $0
 	CALL	R26, (R27)
@@ -85,18 +85,18 @@ TEXT runtime·rt0_go(SB), NOSPLIT, $16
 	// copy args
 	STL	R16, $argc-16(SP)
 	STL	R17, $argv-8(SP)
-	
+
 	SYMADDR	g, $runtime·g0(SB)
 	LDI	R1, $-64*1024(SP)
 	STL	R1, g_stackguard0(g)
 	STL	R1, g_stackguard1(g)
 	STL	R1, (g_stack+stack_lo)(g)
 	STL	SP, (g_stack+stack_hi)(g)
-	
+
 	// if there is a _cgo_init, call it using the gcc ABI.
 	LDL	R27, _cgo_init(SB)
 	BEQ	R27, nocgo
-	
+
 	LDI	R16, g
 	SYMADDR	R17, $setg_gcc<>(SB)
 	LDI	R18, ZERO
@@ -108,7 +108,7 @@ nocgo:
 	SYMADDR	R0, $runtime·m0(SB)
 	STL	g, m_g0(R0)
 	STL	R0,  g_m(g)
-	
+
 	CALL	runtime·check(SB)
 
 	// args are already prepared
@@ -141,7 +141,7 @@ TEXT runtime·udiv(SB), NOSPLIT, $0
 	BEQ	R3, l80
 	STL 	R2, $capn+16(SP)
 l80:
-   	LDI	R3, ZERO
+	LDI	R3, ZERO
 	STL	ZERO, $i+8(SP)
 l96:
 	LDL	R4, $capn+16(SP)
@@ -212,7 +212,7 @@ ok:
 	LDL	REGCTXT, fn+0(FP)
 	LDL	R27, 0(REGCTXT)
 	LDL	SP, (g_sched+gobuf_sp)(g)
-	
+
 	SUBL	SP, $16, SP
 	STL	R1, 8(SP)
 	STL	ZERO, 0(SP)
@@ -224,21 +224,21 @@ ok:
 TEXT runtime·systemstack(SB), NOSPLIT, $0-8
 	LDL	R1, fn+0(FP)
 	LDI	REGCTXT, R1
-	
+
 	LDL	R2, g_m(g)
-	
+
 	LDL	R3, m_gsignal(R2)
 	CMPEQ	g, R3, R3
 	BNE	R3, noswitch
-	
+
 	LDL	R3, m_g0(R2) // save g0 in R3
 	CMPEQ	g, R3, R4
 	BNE	R4, noswitch
-	
+
 	LDL	R4, m_curg(R2)
 	CMPEQ	g, R4, R4
 	BNE	R4, switch
-	
+
 	CALL	runtime·badsystemstack(SB)
 	CALL	runtime·abort(SB)
 	RET
@@ -251,7 +251,7 @@ switch:
 	STL	SP, (g_sched+gobuf_sp)(g)
 	STL	ZERO, (g_sched+gobuf_lr)(g)
 	STL	g, (g_sched+gobuf_g)(g)
-	
+
 	// switch to g0
 	LDI	g, R3
 	CALL	runtime·save_g(SB)
@@ -262,10 +262,10 @@ switch:
 	SYMADDR	R2, $runtime·mstart(SB)
 	STL	R2, 0(R1)
 	LDI	SP, R1
-	
+
 	LDL	R27, 0(REGCTXT)
 	CALL	(R27)
-	
+
 	// switch back to g
 	LDL	R1, g_m(g)
 	LDL	g, m_curg(R1)
@@ -349,10 +349,6 @@ TEXT runtime·morestack_noctxt(SB), NOFRAME|NOSPLIT, $0-0
 	LDI	REGCTXT, ZERO
 	JMP	runtime·morestack(SB)
 
-
-TEXT runtime·publicationBarrier(SB), NOFRAME|NOSPLIT, $0
-	MEMB
-	RET
 
 // void setg(G*); set g. for use by needm.
 TEXT runtime·setg(SB), NOSPLIT, $0-8
@@ -444,7 +440,7 @@ TEXT ·reflectcall(SB), NOFRAME|NOSPLIT, $0-32
 	DISPATCH(runtime·call268435456, 268435456)
 	DISPATCH(runtime·call536870912, 536870912)
 	DISPATCH(runtime·call1073741824, 1073741824)
-	
+
 	CALL	runtime·badreflectcall(SB)
 	RET
 
@@ -532,14 +528,14 @@ CALLFN(·call1073741824, 1073741824)
 // 3. JMP to fn
 TEXT runtime·jmpdefer(SB), NOFRAME|NOSPLIT, $0-16
 	LDL	R26, 0(SP)
-	SUBL	R26, $12, R26
-	
+	SUBL	R26, $32, R26
+
 	LDL	REGCTXT, fv+0(FP)
-	
+
 	LDL	SP, argp+8(FP)
 	SUBL	SP, $8, SP
 	LDI	ZERO, ZERO // prevent scheduling
-	
+
 	LDL	R27, 0(REGCTXT)
 	JMP	(R27)
 	RET
@@ -574,9 +570,9 @@ TEXT ·asmcgocall(SB), NOSPLIT, $8-20
 	NO_LOCAL_POINTERS
 	LDL	R27, fn+0(FP)
 	LDL	R16, arg+8(FP)
-	
+
 	STL	R27, 8(SP)
-	
+
 	LDI	R3, SP
 	LDI	R2, g
 
@@ -586,13 +582,13 @@ TEXT ·asmcgocall(SB), NOSPLIT, $8-20
 	LDL	R5, g_m(g)
 	LDL	R6, m_g0(R5)
 	CMPEQ	R6, g, R0
-	
+
 	BNE	R0, g0
-	
+
 	CALL	gosave<>(SB)
 	LDI	g, R6
 	CALL	runtime·save_g(SB)
-	
+
 	// restore fn value from old SP
 	LDL	R27, 8(SP)
 	LDL	SP, (g_sched+gobuf_sp)(g)
@@ -612,7 +608,7 @@ g0:
 	LDL	R6, 8(SP)
 	SUBL	R5, R6, R5
 	LDI	SP, R5
-	
+
 	STW	R0, ret+16(FP)
 	RET
 
@@ -625,9 +621,10 @@ TEXT setg_gcc<>(SB), NOSPLIT, $0
 
 // Called from cgo wrappers, this function returns g->m->curg.stack.hi.
 // Must obey the gcc calling convention.
-TEXT _cgo_topofstack(SB), NOSPLIT, $8
+TEXT _cgo_topofstack(SB), NOSPLIT, $16
 	// g (R15)  might be clobbered by load_g. They
 	// are callee-save in the gcc calling convention, so save them.
+	STL	R28, savedR28-16(SP)
 	STL	g, savedG-8(SP)
 
 	CALL	runtime·load_g(SB)
@@ -635,8 +632,9 @@ TEXT _cgo_topofstack(SB), NOSPLIT, $8
 	LDL	R1, g_m(g)
 	LDL	R1, m_curg(R1)
 	LDL	R0, (g_stack+stack_hi)(R1) // return value in R0
-	
+
 	LDL	g, savedG-8(SP)
+	LDL	R28, savedR28-16(SP)
 	RET
 
 
@@ -713,12 +711,12 @@ havem:
 	CALL	runtime·save_g(SB)
 	LDL	R2, (g_sched+gobuf_sp)(g)
 	LDL	R27, (g_sched+gobuf_pc)(g)
-	STL	R27, -32(R2) // save LR 
-  	//  Gather our arguments into registers.
-  	LDL 	R16, fn+0(FP)
-  	LDL	R17, frame+8(FP)
-  	LDL 	R18, ctxt+16(FP)
-  	LDI 	SP, $-32(R2) //switch stack
+	STL	R27, -32(R2) // save LR
+	//  Gather our arguments into registers.
+	LDL 	R16, fn+0(FP)
+	LDL	R17, frame+8(FP)
+	LDL 	R18, ctxt+16(FP)
+	LDI 	SP, $-32(R2) //switch stack
 	STL 	R16, 8(SP)
 	STL 	R17, 16(SP)
 	STL 	R18, 24(SP)
@@ -739,7 +737,7 @@ havem:
 	LDL	SP, (g_sched+gobuf_sp)(g)
 	LDL	R2, savedsp-24(SP)
 	STL	R2, (g_sched+gobuf_sp)(g)
-	
+
 	// If the m on entry was nil, we called needm above to borrow an m
 	// for the duration of the call. Since the call is over, return it with dropm.
 	LDL	R3, savedm-8(SP)
@@ -827,30 +825,30 @@ flush:
 	// This takes arguments R13 and R14.
 	CALL	runtime·wbBufFlush(SB)
 
-	LDL     R13, 8(SP)     
-        LDL     R14, 16(SP)    
-        LDL     R0, 24(SP)
-        LDL     R3, 32(SP)
-        LDL     R4, 40(SP)
-        LDL     R5, 48(SP)
-        LDL     R6, 56(SP)
-        LDL     R7, 64(SP)
-        LDL     R8, 72(SP)
-        LDL     R9, 80(SP)
-        LDL     R10, 88(SP)
-        LDL     R11, 96(SP)
-        LDL     R12, 104(SP)
-        LDL     R16, 112(SP)
-        LDL     R17, 120(SP)
-        LDL     R18, 128(SP)
-        LDL     R19, 136(SP)
-        LDL     R20, 144(SP)
-        LDL     R21, 152(SP)
-        LDL     R22, 160(SP)
-        LDL     R23, 168(SP)
-        LDL     R24, 176(SP)
-        LDL     R25, 184(SP)
-        LDL     R27, 192(SP)
+	LDL R13, 8(SP)     
+  LDL R14, 16(SP)    
+  LDL R0, 24(SP)
+  LDL R3, 32(SP)
+  LDL R4, 40(SP)
+  LDL R5, 48(SP)
+  LDL R6, 56(SP)
+  LDL R7, 64(SP)
+  LDL R8, 72(SP)
+  LDL R9, 80(SP)
+  LDL R10, 88(SP)
+  LDL R11, 96(SP)
+  LDL R12, 104(SP)
+  LDL R16, 112(SP)
+  LDL R17, 120(SP)
+  LDL R18, 128(SP)
+  LDL R19, 136(SP)
+  LDL R20, 144(SP)
+  LDL R21, 152(SP)
+  LDL R22, 160(SP)
+  LDL R23, 168(SP)
+  LDL R24, 176(SP)
+  LDL R25, 184(SP)
+  LDL R27, 192(SP)
 	LDL	R1, 200(SP)
 	LDL	R2, 208(SP)
 	// Do the write.
