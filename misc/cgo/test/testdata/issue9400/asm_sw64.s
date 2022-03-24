@@ -11,13 +11,13 @@ TEXT ·RewindAndSetgid(SB), NOSPLIT|NOFRAME, $0-0
 	// Rewind stack pointer so anything that happens on the stack
 	// will clobber the test pattern created by the caller
 	LDI	SP, $(1024*8)(SP)
-	
+
 	// Ask signaller to setgid
 	LDI	R1, $1
 	MEMB
 	STW	R1, ·Baton(SB)
 	MEMB
-	
+
 	// Wait for setgid completion
 loop:
 	MEMB
@@ -25,6 +25,6 @@ loop:
 	NOOP  // hint that we're in a spin loop
 	BNE    R1, loop
 	MEMB
-	
+
 	LDI	SP, $-(1024*8)(SP)
 	RET

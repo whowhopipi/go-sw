@@ -723,6 +723,27 @@ func asmCheckVar(badf func(string, ...interface{}), fn *asmFunc, line, expr stri
 			case "MOVV", "MOVD":
 				src = 8
 			}
+		case "sw64":
+			switch op {
+			// On sw64, load/store insts's second arg
+			// is a disp(rb) addr
+			case "LDBU", "STB":
+				src = 1
+				dst = 8
+				addr = true
+			case "LDHU", "STH":
+				src = 2
+				dst = 8
+				addr = true
+			case "LDW", "STW", "FLDS", "FSTS":
+				src = 4
+				dst = 8
+				addr = true
+			case "LDL", "LDL_U", "STL", "STL_U", "FLDD", "FSTD":
+				src = 8
+				dst = 8
+				addr = true
+			}
 		case "s390x":
 			switch op {
 			case "MOVB", "MOVBZ":

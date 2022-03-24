@@ -15,7 +15,7 @@
 TEXT runtime·save_g(SB), NOFRAME|NOSPLIT, $0-0
 	LDBU	R28, runtime·iscgo(SB)
 	BEQ	R28, nocgo
-	
+
 	LDI	R28, R0
 	STL	g, runtime·tls_g(SB) // TLS relocation clobbers R0
 	LDI	R0, R28

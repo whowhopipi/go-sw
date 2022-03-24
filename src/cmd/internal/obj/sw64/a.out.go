@@ -122,7 +122,6 @@ const (
 
 )
 
-//zxw add
 var SW64DWARFRegisters = map[int16]int16{}
 
 func init() {
@@ -368,7 +367,6 @@ const (
 	ARET  = obj.ARET
 )
 
-//zxw add
 const (
 	/* mark flags */
 	FOLL    = 1 << 0
@@ -379,6 +377,7 @@ const (
 	LOAD    = 1 << 5
 	FCMP    = 1 << 6
 	NOSCHED = 1 << 7
+	CHANGED = 1 << 9
 
 	NSCHED = 20
 )

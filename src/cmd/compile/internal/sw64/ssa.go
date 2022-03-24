@@ -95,7 +95,6 @@ func ssaGenValue(s *gc.SSAGenState, v *ssa.Value) {
 			p.To = obj.Addr{Type: obj.TYPE_ADDR, Reg: v.Args[0].Reg()}
 		}
 		s.Call(v)
-		//zxw add
 	case ssa.OpSW64LoweredWB:
 		p := s.Prog(obj.ACALL)
 		p.To.Type = obj.TYPE_MEM
@@ -388,7 +387,6 @@ func ssaGenValue(s *gc.SSAGenState, v *ssa.Value) {
 
 		p.From.Type = obj.TYPE_REG
 		p.From.Reg = sw64.REGTMP
-		//zxw new add
 		if logopt.Enabled() {
 			logopt.LogOpt(v.Pos, "nilcheck", "genssa", v.Block.Func.Name)
 		}
@@ -580,7 +578,6 @@ func ssaGenValue(s *gc.SSAGenState, v *ssa.Value) {
 
 		p.From.Type = obj.TYPE_REG
 		p.From.Reg = v.Reg()
-	//zxw add
 	case ssa.OpSW64LoweredGetCallerPC:
 		p := s.Prog(obj.AGETCALLERPC)
 		p.From.Type = obj.TYPE_REG
@@ -606,7 +603,6 @@ func ssaGenValue(s *gc.SSAGenState, v *ssa.Value) {
 		p1.To.Type = obj.TYPE_REG
 		p1.To.Reg = v.Reg()
 
-		//zxw new add
 	case ssa.OpSW64LoweredPanicBoundsA, ssa.OpSW64LoweredPanicBoundsB, ssa.OpSW64LoweredPanicBoundsC:
 		p := s.Prog(obj.ACALL)
 		p.To.Type = obj.TYPE_MEM
@@ -614,7 +610,6 @@ func ssaGenValue(s *gc.SSAGenState, v *ssa.Value) {
 		p.To.Sym = gc.BoundsCheckFunc[v.AuxInt]
 		s.UseArgs(16) // space used in callee args area by assembly stubs
 
-		//zxw new add
 	case ssa.OpSW64LoweredAtomicLoad8, ssa.OpSW64LoweredAtomicLoad32, ssa.OpSW64LoweredAtomicLoad64:
 		as := sw64.ALDL
 		switch v.Op {
@@ -904,7 +899,6 @@ func ssaGenBlock(s *gc.SSAGenState, b, next *ssa.Block) {
 		}
 
 	case ssa.BlockExit:
-		//zxw new change
 		//s.Prog(obj.AUNDEF) // tell plive.go that we never reach here
 
 	case ssa.BlockRet:
@@ -935,7 +929,7 @@ func ssaGenBlock(s *gc.SSAGenState, b, next *ssa.Block) {
 			p = s.Prog(jmp.invasm)
 			p.To.Type = obj.TYPE_BRANCH
 			p.From.Type = obj.TYPE_REG
-			p.From.Reg = b.Controls[0].Reg() //zxw new change
+			p.From.Reg = b.Controls[0].Reg()
 			s.Branches = append(s.Branches, gc.Branch{P: p, B: b.Succs[1].Block()})
 		case b.Succs[1].Block():
 			p = s.Prog(jmp.asm)
@@ -944,7 +938,6 @@ func ssaGenBlock(s *gc.SSAGenState, b, next *ssa.Block) {
 			p.From.Reg = b.Controls[0].Reg()
 			s.Branches = append(s.Branches, gc.Branch{P: p, B: b.Succs[0].Block()})
 		default:
-			//zxw change
 			if b.Likely != ssa.BranchUnlikely {
 				p = s.Prog(jmp.asm)
 				p.To.Type = obj.TYPE_BRANCH

@@ -25,7 +25,7 @@ TEXT ·Syscall(SB), NOSPLIT, $0-56
 	LDL	R0, trap+0(FP)
 	SYSCALL
 	BEQ	R19, ok
-	
+
 	LDI	R1, $-1
 	STL	R1, r1+32(FP)
 	STL	ZERO, r2+40(FP)
@@ -51,7 +51,7 @@ TEXT ·Syscall6(SB), NOSPLIT, $0-80
 	LDL	R0, trap+0(FP)
 	SYSCALL
 	BEQ	R19, ok
-	
+
 	LDI	R1, $-1
 	STL	R1, r1+56(FP)
 	STL	ZERO, r2+64(FP)
@@ -75,7 +75,7 @@ TEXT ·RawSyscall(SB), NOSPLIT, $0-56
 	LDL	R0, trap+0(FP)
 	SYSCALL
 	BEQ	R19, ok
-	
+
 	LDI	R1, $-1
 	STL	R1, r1+32(FP)
 	STL	ZERO, r2+40(FP)
@@ -97,7 +97,7 @@ TEXT ·RawSyscall6(SB),NOSPLIT, $0-80
 	LDL	R0, trap+0(FP)
 	SYSCALL
 	BEQ	R19, ok
-	
+
 	LDI	R1, $-1
 	STL	R1, r1+56(FP)
 	STL	ZERO, r2+64(FP)

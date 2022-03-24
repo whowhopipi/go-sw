@@ -204,7 +204,6 @@ func rawVforkSyscall(trap, a1 uintptr) (r1 uintptr, err Errno) {
 	panic("not implemented")
 }
 
-//zxw new add
 //sysnb	EpollCreate(size int) (fd int, err error)
 //sys	Renameat(olddirfd int, oldpath string, newdirfd int, newpath string) (err error)
 //sys	Ustat(dev int, ubuf *Ustat_t) (err error)

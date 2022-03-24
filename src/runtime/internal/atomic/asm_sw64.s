@@ -17,7 +17,7 @@ TEXT runtime∕internal∕atomic·Cas(SB), NOSPLIT|NOFRAME, $0-17
 	LDL	R3, ptr+0(FP)
 	LDW	R4, old+8(FP)
 	LDW	R5, new+12(FP)
-	
+
 	MEMB
 	LLDW	R6, 0(R3)
 	CMPEQ	R6, R4, R6
@@ -42,7 +42,7 @@ TEXT runtime∕internal∕atomic·Cas64(SB), NOFRAME|NOSPLIT, $0-25
 	LDL	R3, ptr+0(FP)
 	LDL	R4, old+8(FP)
 	LDL	R5, new+16(FP)
-	
+
 	MEMB
 	LLDL	R6, 0(R3)
 	CMPEQ	R6, R4, R6
@@ -93,7 +93,7 @@ TEXT runtime∕internal∕atomic·Casp1(SB), NOFRAME|NOSPLIT, $0-25
 TEXT runtime∕internal∕atomic·Xadd(SB), NOFRAME|NOSPLIT, $0-20
 	LDL	R4, ptr+0(FP)
 	LDW	R5, delta+8(FP)
-	
+
 	MEMB
 	LLDW	R6, 0(R4)
 	LDI	R7, 1
@@ -102,7 +102,7 @@ TEXT runtime∕internal∕atomic·Xadd(SB), NOFRAME|NOSPLIT, $0-20
 	LSTW	R7, 0(R4)
 	RD_F	R7
 	BEQ	R7, -6(PC)
-	
+
 	ADDW	R6, R5, R7
 	STW	R7, ret+16(FP)
 	RET
@@ -110,7 +110,7 @@ TEXT runtime∕internal∕atomic·Xadd(SB), NOFRAME|NOSPLIT, $0-20
 TEXT runtime∕internal∕atomic·Xadd64(SB), NOFRAME|NOSPLIT, $0-24
 	LDL	R4, ptr+0(FP)
 	LDL	R5, delta+8(FP)
-	
+
 	MEMB
 	LLDL	R6, 0(R4)
 	LDI	R7, 1
@@ -119,7 +119,7 @@ TEXT runtime∕internal∕atomic·Xadd64(SB), NOFRAME|NOSPLIT, $0-24
 	LSTL	R7, 0(R4)
 	RD_F	R7
 	BEQ	R7, -6(PC)
-	
+
 	ADDL	R6, R5, R7
 	STL	R7, ret+16(FP)
 	RET
@@ -127,7 +127,7 @@ TEXT runtime∕internal∕atomic·Xadd64(SB), NOFRAME|NOSPLIT, $0-24
 TEXT runtime∕internal∕atomic·Xchg(SB), NOFRAME|NOSPLIT, $0-20
 	LDL	R4, ptr+0(FP)
 	LDW	R5, new+8(FP)
-	
+
 	MEMB
 	LLDW	R6, 0(R4)
 	LDI	R7, 1
@@ -136,14 +136,14 @@ TEXT runtime∕internal∕atomic·Xchg(SB), NOFRAME|NOSPLIT, $0-20
 	LSTW	R7, 0(R4)
 	RD_F	R7
 	BEQ	R7, -6(PC)
-	
+
 	STW	R6, ret+16(FP)
 	RET
 
 TEXT runtime∕internal∕atomic·Xchg64(SB), NOFRAME|NOSPLIT, $0-24
 	LDL	R4, ptr+0(FP)
 	LDL	R5, new+8(FP)
-	
+
 	MEMB
 	LLDL	R6, 0(R4)
 	LDI	R7, 1
@@ -152,7 +152,7 @@ TEXT runtime∕internal∕atomic·Xchg64(SB), NOFRAME|NOSPLIT, $0-24
 	LSTL	R7, 0(R4)
 	RD_F	R7
 	BEQ	R7, -6(PC)
-	
+
 	STL	R6, ret+16(FP)
 	RET
 
@@ -197,7 +197,7 @@ TEXT runtime∕internal∕atomic·And8(SB), NOFRAME|NOSPLIT, $0-9
 	SLL	R5, R4, R5
 	ORNOT	R31, R5, R5
 	BIS	R2, R5, R2
-	
+
 	MEMB
 	LLDW	R4, (R3)
 	LDI	R1, 1
@@ -217,7 +217,7 @@ TEXT runtime∕internal∕atomic·Or8(SB), NOFRAME|NOSPLIT, $0-9
 	AND	R1, $3, R4
 	SLL	R4, $3, R4
 	SLL	R2, R4, R2
-	
+
 	MEMB
 	LLDW	R4, (R3)
 	LDI	R1, 1
@@ -247,7 +247,7 @@ TEXT runtime∕internal∕atomic·And(SB), NOFRAME|NOSPLIT, $0-12
 TEXT runtime∕internal∕atomic·Or(SB), NOFRAME|NOSPLIT, $0-12
 	LDL	R1, ptr+0(FP)
 	LDW	R2, val+8(FP)
-  
+
 	MEMB
 	LLDW	R4, (R1)
 	LDI	R3, 1
@@ -257,7 +257,7 @@ TEXT runtime∕internal∕atomic·Or(SB), NOFRAME|NOSPLIT, $0-12
 	RD_F	R3
 	BEQ	R3, -6(PC)
 	RET
-//zxw new add
+
 TEXT runtime∕internal∕atomic·Store8(SB), NOFRAME|NOSPLIT, $0-9
 	LDL	R3, ptr+0(FP)
 	LDBU	R4, val+8(FP)

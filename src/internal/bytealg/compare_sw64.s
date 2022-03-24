@@ -16,7 +16,7 @@ TEXT ·Compare(SB),NOFRAME|NOSPLIT,$0-56
 	BNE	R4, samebytes
 	CMPULT	R0, R1, R4
 	SELEQ	R4, R1, R0, R5    // R5 is min(R0,R1)
-	
+
 	ADDL	R5, R2, R5
 loop:
 	CMPEQ	R5, R2, R8
@@ -49,12 +49,12 @@ TEXT runtime·cmpstring(SB),NOFRAME|NOSPLIT,$0-40
 	BNE	R4, samebytes
 	CMPULT	R0, R1, R4
 	SELEQ	R4, R1, R0, R5    // R5 is min(R0,R1)
-	
+
 	ADDL	R5, R2, R5
 loop:
 	CMPEQ	R5, R2, R8
 	BNE	R8, samebytes   // all compared bytes were the same; compare lengths
-	
+
 	LDBU	R6, (R2)
 	ADDL	R2, $1, R2
 	LDBU	R7, (R3)

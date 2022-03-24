@@ -45,7 +45,7 @@ TEXT crosscall2(SB), NOFRAME|NOSPLIT, $0
 
 	CALL	runtime·load_g(SB)
 
-  	CALL 	runtime·cgocallback(SB)
+	CALL	runtime·cgocallback(SB)
 
 	LDL	R9, (8*4)(SP)
 	LDL	R10, (8*5)(SP)

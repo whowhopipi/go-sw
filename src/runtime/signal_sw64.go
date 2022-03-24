@@ -70,7 +70,6 @@ func (c *sigctxt) preparePanic(sig uint32, gp *g) {
 
 	pc := gp.sigpc
 
-	//zxw change
 	if shouldPushSigpanic(gp, pc, uintptr(c.link())) {
 		// Make it look the like faulting PC called sigpanic.
 		c.set_link(uint64(pc))

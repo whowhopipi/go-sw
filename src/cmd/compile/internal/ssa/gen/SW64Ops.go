@@ -133,8 +133,8 @@ func init() {
 		fp_src     = buildReg("F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20")
 		fp_dst     = buildReg("F21 F22 F23 F24 F25 F26 F27 F28 F29 F30")
 		callerSave = gp | fp | buildReg("g") // runtime.setg (and anything calling it) may clobber g
-		//zxw new add
-		r1 = buildReg("R1")
+
+    r1 = buildReg("R1")
 		r2 = buildReg("R2")
 		r3 = buildReg("R3")
 		r4 = buildReg("R4")
@@ -344,7 +344,6 @@ func init() {
 		// pseudo-ops
 		{name: "LoweredNilCheck", argLength: 2, reg: regInfo{inputs: []regMask{gpg}}, nilCheck: true, faultOnNilArg0: true}, // panic if arg0 is nil.  arg1=mem.
 
-		//zxw change
 		// Scheduler ensures LoweredGetClosurePtr occurs only in entry block,
 		// and sorts it to the very beginning of the block to prevent other
 		// use of R25 (sw64.REGCTXT, the closure pointer)
@@ -353,7 +352,6 @@ func init() {
 		// LoweredGetCallerSP returns the SP of the caller of the current function.
 		{name: "LoweredGetCallerSP", reg: gp01, rematerializeable: true},
 
-		//zxw add
 		// LoweredGetCallerPC evaluates to the PC to which its "caller" will return.
 		// I.e., if f calls g "calls" getcallerpc,
 		// the result should be the PC within f that g will return to.
@@ -370,14 +368,12 @@ func init() {
 		{name: "FEqual", argLength: 1, reg: readflags},
 		{name: "FNotEqual", argLength: 1, reg: readflags},
 
-		//zxw add
 		// LoweredWB invokes runtime.gcWriteBarrier. arg0=destptr, arg1=srcptr, arg2=mem, aux=runtime.gcWriteBarrier
 		// It saves all GP registers if necessary,
 		// but clobbers R26 (LR) because it's a call
 		// and R28 (REGTMP).
 		{name: "LoweredWB", argLength: 3, reg: regInfo{inputs: []regMask{buildReg("R13"), buildReg("R14")}, clobbers: (callerSave &^ gpg) | buildReg("R26")}, clobberFlags: true, aux: "Sym", symEffect: "None"},
 
-		//zxw new add
 		// There are three of these functions so that they can have three different register inputs.
 		// When we check 0 <= c <= cap (A), then 0 <= b <= c (B), then 0 <= a <= b (C), we want the
 		// default registers to match so we don't need to copy registers around unnecessarily.
@@ -385,7 +381,6 @@ func init() {
 		{name: "LoweredPanicBoundsB", argLength: 3, aux: "Int64", reg: regInfo{inputs: []regMask{r2, r3}}, typ: "Mem", call: true}, // arg0=idx, arg1=len, arg2=mem, returns memory. AuxInt contains report code (see PanicBounds in genericOps.go).
 		{name: "LoweredPanicBoundsC", argLength: 3, aux: "Int64", reg: regInfo{inputs: []regMask{r1, r2}}, typ: "Mem", call: true}, // arg0=idx, arg1=len, arg2=mem, returns memory. AuxInt contains report code (see PanicBounds in genericOps.go).
 
-		//zxw new add
 		// atomic loads.
 		// load from arg0. arg1=mem.
 		// returns <value,memory> so they can be properly ordered with other loads.
@@ -450,7 +445,6 @@ func init() {
 		{name: "LoweredAtomicCas64", argLength: 4, reg: gpcas, resultNotInArgs: true, faultOnNilArg0: true, hasSideEffects: true, unsafePoint: true},
 	}
 
-	//zxw  new change
 	blocks := []blockData{
 		{name: "NE", controls: 1},
 		{name: "EQ", controls: 1},

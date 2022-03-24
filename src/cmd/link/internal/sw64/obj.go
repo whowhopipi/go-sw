@@ -42,7 +42,6 @@ func Init() (*sys.Arch, ld.Arch) {
 	return arch, theArch
 }
 
-//zxw new change
 func archinit(ctxt *ld.Link) {
 	switch ctxt.HeadType {
 	default:
