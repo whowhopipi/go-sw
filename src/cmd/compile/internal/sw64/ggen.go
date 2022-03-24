@@ -36,7 +36,6 @@ func zeroAuto(pp *gc.Progs, n *gc.Node) {
 	}
 }
 
-//zxw new change
 func ginsnop(pp *gc.Progs) *obj.Prog {
 	p := pp.Prog(sw64.ALDI)
 	p.From.Type = obj.TYPE_REG

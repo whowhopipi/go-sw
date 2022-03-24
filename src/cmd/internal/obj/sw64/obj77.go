@@ -11,10 +11,6 @@ import (
 )
 
 func (c *ctxt77) stacksplit(p *obj.Prog, framesize int32) *obj.Prog {
-	//还有问题，不要开启。
-	//目前是在src/runtime/stack.go中将StackMin调整到2M，避免stack不够的情况
-	//	return p
-
 	//	if framesize == 0 {
 	//		return p
 	//	}
@@ -35,7 +31,6 @@ func (c *ctxt77) stacksplit(p *obj.Prog, framesize int32) *obj.Prog {
 		p.To.Offset = 3 * int64(c.ctxt.Arch.PtrSize) // G.stackguard1
 	}
 
-	//zxw new add
 	// Mark the stack bound check and morestack call async nonpreemptible.
 	// If we get preempted here, when resumed the preemption request is
 	// cleared, but we'll still call morestack, which will double the stack
@@ -121,7 +116,7 @@ func (c *ctxt77) stacksplit(p *obj.Prog, framesize int32) *obj.Prog {
 		p = obj.Appendp(p, c.newprog)
 		p.As = AADDL
 		p.From.Type, p.From.Reg = obj.TYPE_REG, REGSP
-		p.SetFrom3(obj.Addr{Type: obj.TYPE_CONST, Offset: int64(objabi.StackGuard)}) //zxw new change
+		p.SetFrom3(obj.Addr{Type: obj.TYPE_CONST, Offset: int64(objabi.StackGuard)})
 		p.To.Type, p.To.Reg = obj.TYPE_REG, REG_R2
 
 		//	SUBL R2, R1, R2
@@ -132,7 +127,7 @@ func (c *ctxt77) stacksplit(p *obj.Prog, framesize int32) *obj.Prog {
 		p.To.Type, p.To.Reg = obj.TYPE_REG, REG_R2
 
 		//	LDI R1, $(framesize+(StackGuard-StackSmall))
-		v := int64(framesize) + int64(objabi.StackGuard) - objabi.StackSmall //zxw new change
+		v := int64(framesize) + int64(objabi.StackGuard) - objabi.StackSmall
 		hi := int16(v >> 16)
 		lo := int16(v & 0xffff)
 		if lo < 0 {
@@ -176,7 +171,6 @@ func (c *ctxt77) stacksplit(p *obj.Prog, framesize int32) *obj.Prog {
 		q.To.Val = p
 	}
 
-	//zxw new change
 	p = c.ctxt.EmitEntryStackMap(c.cursym, p, c.newprog)
 
 	// JMP runtime.morestack(SB)
@@ -198,7 +192,6 @@ func (c *ctxt77) stacksplit(p *obj.Prog, framesize int32) *obj.Prog {
 		p.To.Sym = c.ctxt.Lookup("runtime.morestack")
 	}
 
-	//zxw new add
 	p = c.ctxt.EndUnsafePoint(p, c.newprog, -1)
 
 	// JMP	start
@@ -243,7 +236,6 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 	p := c.cursym.Func().Text
 	textstksiz := p.To.Offset
 
-	//zxw add
 	if textstksiz == -ctxt.FixedFrameSize() {
 		// Historical way to mark NOFRAME.
 		p.From.Sym.Set(obj.AttrNoFrame, true)
@@ -266,7 +258,6 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 		return
 	}
 
-	//zxw add
 	/*
 	 * find leaf subroutines
 	 * strip NOPs
@@ -310,7 +301,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 				for q1.As == obj.ANOP {
 					q1 = q1.Link
 					//p.Pcond = q1
-					p.To.Val = q1 //zxw new change
+					p.To.Val = q1
 				}
 			}
 
@@ -407,7 +398,6 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 			}
 
 			if autosize != 0 {
-				//zxw new add
 				q = c.ctxt.StartUnsafePoint(q, c.newprog)
 
 				// STL RA, $-autosize(SP)
@@ -428,7 +418,6 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 				q.To.Type = obj.TYPE_ADDR
 				q.To.Reg = REGSP
 				q.To.Offset = int64(-autosize)
-				//zxw new add
 				q = c.ctxt.EndUnsafePoint(q, c.newprog, -1)
 			} else if manuallr != nil && manualsp != nil {
 				if preprog.As == obj.AFUNCDATA && manuallr.Link == manualsp {
@@ -575,7 +564,6 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 				p = q
 
 			}
-			//zxw add
 			if retjmp != nil {
 				if autosize == 0 {
 					tmp := newprog()
@@ -666,7 +654,6 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 
 				p = q1
 			}
-			//zxw add
 		case obj.AGETCALLERPC:
 			if cursym.Leaf() {
 				q := p

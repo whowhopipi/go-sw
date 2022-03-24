@@ -1152,8 +1152,8 @@ func (f *File) applyRelocationsSW64(dst []byte, rels []byte) error {
 		if symNo == 0 || symNo > uint64(len(symbols)) {
 			continue
 		}
-		//zxw new change
-		sym := &symbols[symNo-1]
+
+    sym := &symbols[symNo-1]
 		if !canApplyRelocation(sym) {
 			// We don't handle non-section relocations for now.
 			continue

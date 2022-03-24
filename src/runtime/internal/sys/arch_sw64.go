@@ -4,7 +4,6 @@
 
 package sys
 
-//zxw new change
 const (
 	ArchFamily          = SW64
 	BigEndian           = false

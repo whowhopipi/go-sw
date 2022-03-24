@@ -76,7 +76,7 @@ var optab = []Optab{
 	{obj.AFUNCDATA, C_SUCON, C_NONE, C_NONE, C_LEXT, 0, 0, 0, 0},
 	{obj.APCDATA, C_SUCON, C_NONE, C_NONE, C_LCON, 0, 0, 0, 0},
 	{obj.ARET, C_RREG, C_NONE, C_NONE, C_SOREG, 2, 4, 0, 0},
-	//zxw add
+
 	{obj.ARET, C_NONE, C_NONE, C_NONE, C_LEXT, 24, 12, REG_R29, NOTUSETMP},
 	{AMEMB, C_NONE, C_NONE, C_NONE, C_NONE, 4, 4, 0, 0},
 	{ARD_F, C_RREG, C_NONE, C_NONE, C_NONE, 4, 4, 0, 0},
@@ -159,7 +159,7 @@ var xcmp [C_NCLASS][C_NCLASS]bool
 
 func span77(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 	if ctxt.Retpoline {
-		ctxt.Diag("-spectre=ret not supported on mips")
+		ctxt.Diag("-spectre=ret not supported on sw64")
 		ctxt.Retpoline = false // don't keep printing
 	}
 	p := cursym.Func().Text
@@ -277,7 +277,6 @@ func span77(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 		}
 	}
 
-	//zxw new add
 	// Mark nonpreemptible instruction sequences.
 	// We use REGTMP as a scratch register during call injection,
 	// so instruction sequences that use REGTMP are unsafe to
@@ -1239,7 +1238,7 @@ func (c *ctxt77) asmout(p *obj.Prog, o *Optab, out []uint32) {
 		o3 = OP_MEMORY(c.oprrr(AADDL), r0, rtmp, rtmp)
 		//STx/LDx Rn, 0(RTMP)
 		o4 = OP_MEMORY(c.oprrr(p.As), rn, rtmp, 0)
-	//zxw add
+
 	case 24: /*retjmp*/
 		sym := p.To.Sym
 		//r := getRegister(p.From.Reg)

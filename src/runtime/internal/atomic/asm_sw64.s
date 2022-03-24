@@ -257,7 +257,7 @@ TEXT runtime∕internal∕atomic·Or(SB), NOFRAME|NOSPLIT, $0-12
 	RD_F	R3
 	BEQ	R3, -6(PC)
 	RET
-//zxw new add
+
 TEXT runtime∕internal∕atomic·Store8(SB), NOFRAME|NOSPLIT, $0-9
 	LDL	R3, ptr+0(FP)
 	LDBU	R4, val+8(FP)
