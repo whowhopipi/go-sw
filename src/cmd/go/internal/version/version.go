@@ -67,7 +67,7 @@ func runVersion(ctx context.Context, cmd *base.Command, args []string) {
 			base.SetExitStatus(2)
 			return
 		}
-		fmt.Printf("go version %s %s/%s\n", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+		fmt.Printf("go version %s %s/%s (Git-commit:7c7ef9447 Date:20220324)\n", runtime.Version(), runtime.GOOS, runtime.GOARCH)
 		return
 	}
 
