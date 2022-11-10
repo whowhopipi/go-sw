@@ -1,0 +1,5 @@
+./atomic_sw64.go
+./stubs.go
+./unaligned.go
+./asm_sw64.s
+./atomic_sw64.s

@@ -1,0 +1,5 @@
+# test log
+getenv TMPDIR
+open /tmp/multipart-2771385519
+open /tmp/multipart-2771385519
+open testdata/nested-mime

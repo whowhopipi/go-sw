@@ -1,0 +1,6 @@
+# test log
+getenv TMPDIR
+open /tmp/web-TestGetFileURL4127449507
+open /tmp/web-TestGetFileURL4127449507
+getenv PWD
+open /home/jx/work/src/golang/go-sw64-1.16.4/src/cmd/go/internal/web/nonexistent

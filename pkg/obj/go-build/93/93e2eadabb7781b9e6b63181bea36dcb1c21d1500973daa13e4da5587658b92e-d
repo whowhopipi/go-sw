@@ -1,0 +1,19 @@
+# test log
+getenv TMPDIR
+open /tmp/TestToSymbolFunc3327015337/001/719004018_gccgo_manglechck.go
+open /tmp/TestToSymbolFunc3327015337/001/719004018_gccgo_manglechck.go
+open /dev/null
+open /tmp/go-build247727941/b1481/pkgpath.test
+open /tmp/TestToSymbolFunc3327015337/001/784501289_gccgo_manglechck.go
+open /tmp/TestToSymbolFunc3327015337/001/784501289_gccgo_manglechck.go
+open /dev/null
+open /tmp/go-build247727941/b1481/pkgpath.test
+open /tmp/TestToSymbolFunc3327015337/001/179670900_gccgo_manglechck.go
+open /tmp/TestToSymbolFunc3327015337/001/179670900_gccgo_manglechck.go
+open /dev/null
+open /tmp/go-build247727941/b1481/pkgpath.test
+open /tmp/TestToSymbolFunc3327015337/001/555971651_gccgo_manglechck.go
+open /tmp/TestToSymbolFunc3327015337/001/555971651_gccgo_manglechck.go
+open /dev/null
+open /tmp/go-build247727941/b1481/pkgpath.test
+open /tmp

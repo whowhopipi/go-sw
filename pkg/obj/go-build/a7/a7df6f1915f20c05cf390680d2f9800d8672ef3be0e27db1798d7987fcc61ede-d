@@ -1,0 +1,4 @@
+# test log
+open /dev/null
+open /tmp/go-build247727941/b549/cpu.test
+getenv GODEBUG

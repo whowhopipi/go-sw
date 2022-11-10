@@ -1,0 +1,6 @@
+./elliptic.go
+./p224.go
+./p256.go
+./p256_generic.go
+./elliptic_test.go
+./p224_test.go

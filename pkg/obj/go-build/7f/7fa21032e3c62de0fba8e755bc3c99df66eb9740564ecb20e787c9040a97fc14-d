@@ -1,0 +1,4 @@
+./md5.go
+./md5block.go
+./md5block_generic.go
+./md5_test.go
